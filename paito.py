@@ -51,76 +51,72 @@ class Grafo:
 # (parâmetro) da função
 
  # ======================= cálculo de excentricidade ======================= #
-  def graphEccentricity(self):
-    excentricidades = {}
-    
-    for vertice in self.vertices:
-        excentricidade = self.nodeEccentricity(vertice)
-        excentricidades[vertice] = excentricidade
-    
-    return excentricidades
   
   def eccentricity(self):
-        predecessores = {}
-        distanciaAcumulada = {}
-        for vertice in self.vertices:
-          distanciaAcumulada[vertice] = 1
-          predecessores[vertice] = None
-          print(distanciaAcumulada) # verifying
+    # the purpose here is to find what's the maximum distance between one node to all of the others
+    # which means we can run BFS starting from every node and return the maximum distance of each
+    nodesEccentricity = {}
     
-  def buscaDijkstra2(self, verticeInicial, verticeFinal):
+    if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
+      for vertice in self.vertices:
+          nodeEccentricity = self.eccentricityFinder(vertice)
+          nodesEccentricity[vertice] = nodeEccentricity
+    
+      return nodesEccentricity
   
-        predecessores = {}
-        distancias = {}
-        for vertice in self.vertices:
-          distancias[vertice] = 1
-          predecessores[vertice] = None
+    else:
+      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
     
-        distancias[verticeInicial] = 0.0
-    
-        q = []
-        for vertice in self.vertices:
-          q.append(vertice)
-    
-        while len(q) > 0:
-          verticeAtual = self.min(q, distancias)
-          if verticeAtual is None:
-            break
-          q.remove(verticeAtual)
-    
-          for vizinho in self.pegaVizinhos(verticeAtual):
-            novaDistancia = distancias[verticeAtual] + distancias[vizinho]
-    
-            if novaDistancia < distancias[vizinho]:
-    
-              distancias[vizinho] = novaDistancia
-    
-              predecessores[vizinho] = verticeAtual
-    
-        caminho = []
-        distanciaTotal = 1
-    
-        if predecessores[verticeFinal] != None:
-    
-          distanciaTotal = distancias[verticeFinal]
-    
-          verticeAtual = verticeFinal
-          while verticeAtual != None:
-            caminho.insert(0, verticeAtual)
-            verticeAtual = predecessores[verticeAtual]
-    
-        
+  def eccentricityFinder(self, verticeInicial): # it's a BFS, we need it to find the eccentricity of each node!!
+    if self.repr == "lista":
+        distancias = {}  
+        queue = []
+        visitados = []
+        queue.append((verticeInicial, 0))  
+
+        while queue:
+            verticeAtual, distancia = queue.pop(0)  
+            if verticeAtual not in visitados:
+                visitados.append(verticeAtual)
+                distancias[verticeAtual] = distancia  
+
+                for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
+                    if vizinho not in visitados:
+                        queue.append((vizinho, distancia + 1)) 
+
+
+    else:  # para matriz
+        distancias = {}  
+        queue = []
+        visitados = []
+        queue.append((verticeInicial, 0))  
+
+        while queue:
+            verticeAtual, distancia = queue.pop(0)
+            indiceVerticeAtual = self.vertices.index(verticeAtual)
+            if verticeAtual not in visitados:
+                visitados.append(verticeAtual)
+                distancias[verticeAtual] = distancia
+
+                for indice, adjacente in enumerate(self.matrizAdjacencias[indiceVerticeAtual]):
+                    if adjacente != 0 and self.vertices[indice] not in visitados:
+                        queue.append((self.vertices[indice], distancia + 1))
+
+    maiorDistancia = 0
+    for vertice in distancias:
+      if distancias[vertice] > maiorDistancia:
+         maiorDistancia = distancias[vertice]
+
+    return maiorDistancia
 
   # ======================= manipulações básicas e auxiliares do grafo ======================= #
   def componentsSCC(self): # strongly connected components
     # "why do we need this thing???" you might be asking. It returns how many SSC we have in the graph. You'll need it, trust me.
     if self.direcionado:
       originalDFS = self.buscaProfundidadeKosaraju()
-      print(originalDFS)
       grafoTransposto = self.transpor()
       # everytime it stops running, it means a new component exists
       components = grafoTransposto.componentFinder(originalDFS[0])
-      print(len(components))
       
       return components
         
@@ -613,7 +609,7 @@ class Grafo:
       visitas = {}
       queue.append(verticeInicial)
 
-      indiceVerticeInicial = self.vertices.index(verticeInicial)
+      # indiceVerticeInicial = self.vertices.index(verticeInicial)
 
       while queue:
         
