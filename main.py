@@ -13,6 +13,7 @@ paito.adicionarVertice("E")
 paito.adicionarVertice("F")
 paito.adicionarVertice("G")
 # paito.adicionarVertice("H")
+#cu
 
 paito.adicionarAresta('A', 'C')
 paito.adicionarAresta('A', 'D')
