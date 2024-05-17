@@ -55,8 +55,6 @@ paito.adicionarAresta('E', 'F')
 # paito.adicionarAresta('F', 'D')
 
 
-# print(paito.buscaLargura("A"))
-print(paito.eccentricityFinder("D"))
-# print(paito.eccentricity())
 
+print(paito.radius())
 

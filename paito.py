@@ -55,23 +55,26 @@ class Grafo:
   def eccentricity(self):
     # the purpose here is to find what's the maximum distance between one node to all of the others
     # which means we can run BFS starting from every node and return the maximum distance of each
-    nodesEccentricity = {}
+    # nodesEccentricity = {}
+    eccentricities = []
     
     if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
       for vertice in self.vertices:
           nodeEccentricity = self.eccentricityFinder(vertice)
-          nodesEccentricity[vertice] = nodeEccentricity
-    
-      return nodesEccentricity
+          # nodesEccentricity[vertice] = nodeEccentricity
+          eccentricities.append(nodeEccentricity)
+
+      return eccentricities
   
     else:
       raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
     
   def eccentricityFinder(self, verticeInicial): # it's a BFS, we need it to find the eccentricity of each node!!
+    distancias = {}  
+    queue = []
+    visitados = []
+    
     if self.repr == "lista":
-        distancias = {}  
-        queue = []
-        visitados = []
         queue.append((verticeInicial, 0))  
 
         while queue:
@@ -86,9 +89,6 @@ class Grafo:
 
 
     else:  # para matriz
-        distancias = {}  
-        queue = []
-        visitados = []
         queue.append((verticeInicial, 0))  
 
         while queue:
@@ -109,7 +109,29 @@ class Grafo:
 
     return maiorDistancia
 
-  # ======================= manipulações básicas e auxiliares do grafo ======================= #
+ # ======================= cálculo de diâmetro ======================= #
+
+  def diameter(self): # The diameter of a graph is the maximum eccentricity value observed amongst all nodes
+      eccentricities = self.eccentricity()
+      return max(eccentricities)
+
+ # ======================= cálculo de raio ======================= #
+  def radius(self):
+     eccentricities = self.eccentricity()
+     return min(eccentricities)
+
+ # ======================= centrality measures ======================= #
+
+  def closeness(self):
+    pass
+
+  def betweenness(self):
+    pass
+
+  def shortestPathFinder(self, vertice): # eh vou ter que achar isso aqui antes
+      pass
+    
+ # ======================= manipulações básicas e auxiliares do grafo ======================= #
   def componentsSCC(self): # strongly connected components
     # "why do we need this thing???" you might be asking. It returns how many SSC we have in the graph. You'll need it, trust me.
     if self.direcionado:
