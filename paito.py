@@ -176,11 +176,11 @@ class Grafo:
           closeness = (qntVertices - 1) / somaDistancias
       else:
           closeness = 0
-          
+
     else: # directed graph
-       indegree = self.indegree(verticeInicial)
-       if indegree > 0:
-          closeness = indegree / (qntVertices - 1)
+      #  indegree = self.indegree(verticeInicial)
+       if somaDistancias > 0:
+          closeness = somaDistancias / (qntVertices - 1)
        else:
           closeness = 0
 
