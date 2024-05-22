@@ -121,22 +121,18 @@ class Grafo:
 
  # ======================= centrality measures ======================= #
 
-  def closeness(self): # SE FOR DIRECTED AND NOT SCC YOU MAKE THE L
+  def closeness(self): # DEFINETELY WORKING
     # The purpose of Closeness is to find how close a node is from the others. As much closer it is to 1,
     # more important the node is 'cause of its potential to spread informations faster :)
   
     closenesses = []
     
-    if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
-      for vertice in self.vertices:
+    for vertice in self.vertices:
           nodeCloseness = self.closenessFinder(vertice)
           closenesses.append(nodeCloseness)
 
-      return closenesses
-  
-    else:
-      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
-    
+    return closenesses
+
   def betweenness(self):
     pass
 
@@ -175,10 +171,18 @@ class Grafo:
     somaDistancias = sum(distancias.values())
     qntVertices = len(self.vertices)
     
-    if somaDistancias > 0:
-        closeness = (qntVertices - 1) / somaDistancias
-    else:
-        closeness = 0
+    if not self.direcionado:
+      if somaDistancias > 0:
+          closeness = (qntVertices - 1) / somaDistancias
+      else:
+          closeness = 0
+          
+    else: # directed graph
+       indegree = self.indegree(verticeInicial)
+       if indegree > 0:
+          closeness = indegree / (qntVertices - 1)
+       else:
+          closeness = 0
 
     return closeness
 
