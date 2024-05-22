@@ -183,8 +183,55 @@ class Grafo:
 
     return closeness
 
-  def betweenness(self):
-    pass
+  def betweenness(self, verticeInicial=None):
+    # Cria o dicionario onde vamos colocar aa centralidadea betweenness:
+    betweenness = {}
+
+    for vertice in self.vertices:
+      betweenness[vertice] = 0
+
+    for s in self.vertices:
+      # Reinicia as variáveis: ---------------
+      pilhaVisitados = []
+      predecessors = {}
+      distance = {}
+      sigma = {}
+
+      for vertice in self.vertices:
+        predecessors[vertice] = []
+        distance[vertice] = -1
+        sigma[vertice] = 0 
+
+      distance[s] = 0
+      sigma[s] = 1
+
+      queue = [s]
+
+      # Começa a verificar (não faço ideia do que ta acontecendo AAAAAAAAAAAAAAA): ----------------
+      while queue:
+        v = queue.pop(0)
+        pilhaVisitados.append(v)
+        for neighbor, _ in self.listaDict[v]:
+          if distance[neighbor] < 0:
+            queue.append(neighbor)
+            distance[neighbor] = distance[v] + 1
+          if distance[neighbor] == distance[v] + 1:
+            sigma[neighbor] += sigma[v]
+            predecessors[neighbor].append(v)
+
+      delta = {v: 0 for v in self.vertices}
+      while pilhaVisitados:
+          w = pilhaVisitados.pop()
+          for predecessor in predecessors[w]:
+              delta[predecessor] += (sigma[predecessor] / sigma[w]) * (1 + delta[w])
+          if w != s:
+              betweenness[w] += delta[w] / 2
+
+    if verticeInicial:
+       return betweenness[verticeInicial]
+    
+    else:
+      return betweenness
 
   def degreeCentrality(self):
      # It considers that the most central node is that one with the highest number of connections
