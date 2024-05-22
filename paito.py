@@ -35,14 +35,14 @@ class Grafo:
 # 3) Função que calcula a Centralidade de Grau (Degree Centrality) de cada vértice do grafo;
 # 4) Função que calcula a Centralidade de Intermediação (Betweenness Centrality) de cada vértice do
 # grafo;
-# 5) Função que calcula a Centralidade de Proximidade (Closeness Centrality) de cada vértice do grafo;
-# 6) Excentricidade vértices do grafo: implemente uma função que retorne a excentricidade de cada
+# done 5) Função que calcula a Centralidade de Proximidade (Closeness Centrality) de cada vértice do grafo;
+# done 6) Excentricidade vértices do grafo: implemente uma função que retorne a excentricidade de cada
 # vértice do grafo. Essa função só deve ser executada caso o grafo seja conectado. No caso de o grafo
 # não ser conectado, deve ser reportada uma exceção ou a função deve retornar um valor de
 # excentricidade nulo para cada vértice.
-# 7) Diâmetro do grafo: implemente uma função que calcula o diâmetro do grafo. Essa função só deve ser
+# done 7) Diâmetro do grafo: implemente uma função que calcula o diâmetro do grafo. Essa função só deve ser
 # executada caso o grafo seja conexo.
-# 8) Raio do grafo: implemente uma função que calcula o raio do grafo. Essa função só deve ser executada
+# done 8) Raio do grafo: implemente uma função que calcula o raio do grafo. Essa função só deve ser executada
 # caso o grafo seja conexo.
 # 9) Função que calcula a centralidade de intermediação (Edge Betweenness) de cada aresta do grafo;
 # 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
@@ -133,9 +133,6 @@ class Grafo:
 
     return closenesses
 
-  def betweenness(self):
-    pass
-
   def closenessFinder(self, verticeInicial):
     distancias = {}  
     queue = []
@@ -186,7 +183,23 @@ class Grafo:
 
     return closeness
 
+  def betweenness(self):
+    pass
+
+  def degreeCentrality(self):
+     # It considers that the most central node is that one with the highest number of connections
+     # closer to 1 = most central
+     degreeCentralities = {}
+     for vertice in self.vertices:
+        degree = self.degree(vertice)
+        n = len(self.vertices) - 1
+        dCentrality = degree / n 
+        degreeCentralities[vertice] = dCentrality
+
+     return max(degreeCentralities.values())
+
  # ======================= manipulações básicas e auxiliares do grafo ======================= #
+
   def componentsSCC(self): # strongly connected components
     # "why do we need this thing???" you might be asking. It returns how many SSC we have in the graph. You'll need it, trust me.
     if self.direcionado:
