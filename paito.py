@@ -121,7 +121,7 @@ class Grafo:
 
  # ======================= centrality measures ======================= #
 
-  def closeness(self):
+  def closeness(self): # SE FOR DIRECTED AND NOT SCC YOU MAKE THE L
     # The purpose of Closeness is to find how close a node is from the others. As much closer it is to 1,
     # more important the node is 'cause of its potential to spread informations faster :)
   
@@ -508,27 +508,6 @@ class Grafo:
       else:
             return []
 
-  # def pegaVizinhosComPeso(self, vertice1):
-  #   if self.repr == "matriz":
-  #     vizinhos = []
-
-  #     indiceV1 = self.vertices.index(vertice1)
-  #     for vertice in self.vertices:
-  #       indiceV2 = self.vertices.index(vertice)
-
-  #       if self.matrizAdjacencias[indiceV1][indiceV2] != 0:
-  #         vizinhos.append( (vertice, self.matrizAdjacencias[indiceV1][indiceV2]))
-
-  #     return vizinhos
-
-  #   else: # lista
-  #     vizinhos = []
-  #     if vertice1 in self.vertices:
-  #       for (vizinho, peso) in self.listaDict[vertice1]:
-  #         vizinhos.append((vizinho, peso))
-          
-  #     return vizinhos
-
   def recuperarPeso(self, vertice1, vertice2):
     if self.ponderado and self.verificarAresta(vertice1, vertice2):
       if self.repr == "matriz":
@@ -883,64 +862,126 @@ class Grafo:
         self.repr = self.clean(representacao, "% representation=")
         self.direcionado = bool(self.clean(direcionamento, "% directed="))
         self.ponderado = bool(self.clean(ponderacao, "% weighted="))
+  def salvarPajek(self, arquivoPajek):
+    with open(arquivoPajek, "w") as file:
+      # ---- Armazenamento dos Dados:
+      file.write(f"% representation={self.repr}\n")
+      file.write(f"% directed={self.direcionado}\n")
+      file.write(f"% weighted={self.ponderado}\n")
 
-        if self.repr == "matriz":
-          self.criarMatrizAdjacencias()
+      # ---- Armazenamento de Vertices:
+      file.write(f"*Vertices {len(self.vertices)}\n")
 
-        else:  # self.repr == "lista":
-          self.listaDict = {}
+      for i in range(len(self.vertices)):
+        file.write(f"{i} {self.vertices[i]}\n")
 
-        #  ---- Vertices
-        # No arquivo pajek, a lista de vertice esta salva como:
-        # *Vertices n
-        # Entao criamos um 'for i' que percorra esse "n"
-        n = int(self.clean(file.readline(), "*Vertices "))
-        for _ in range(n):
-          vertice = file.readline().replace("\n", "").split(" ")
-          self.adicionarVertice(vertice[1])
+      # ---- Armazenamento de Arestas:
+      if self.repr == "matriz":
+        file.write("*arcs\n")
+        # Pra cada vertice
+        for i in range(len(self.matrizAdjacencias)):
+          for j in range(len(self.matrizAdjacencias[i])):
 
-        #  ---- Arestas
-        file.readline()  # Retira o *arcs / *edge
+            # Verifica se existe a aresta entre os vertices 'i' e 'j':
+            if self.matrizAdjacencias[i][j] != 0:
+              # Escreve o index do vertice de origem, de destino e por ultimo peso (se tiver)
+              aresta = f"{i} {j}"
 
-        if self.repr == "matriz":
+              if self.ponderado:
+                aresta += f" {self.matrizAdjacencias[i][j]}"
+
+              file.write(f"{aresta}\n")
+
+      else:  #self.repr == "lista":
+        file.write("*edge\n")
+        # Pra cada vertice de origem
+        for vertice in self.listaDict:
+          # Pra cada vertice ligado ao de origem
+          for arestas in self.listaDict[vertice]:
+            # Escreve o index do vertice de origem, de destino e por ultimo peso (se tiver)
+            aresta = f"{vertice} {arestas[0]}"
+
+            if self.ponderado:
+              aresta += f" {arestas[1]}"
+
+            file.write(f"{aresta}\n")
+
+  # So pra deixar o carregarPajek mais limpo
+  def clean(self, texto, retirar):
+    return texto.replace(retirar, "").replace("\n", "")
+
+  def carregarPajek(self, arquivoPajek):
+    with open(arquivoPajek, "r") as file:
+      #  ---- Dados do Grafo:
+      representacao = file.readline()
+      direcionamento = file.readline()
+      ponderacao = file.readline()
+
+      self.repr = self.clean(representacao, "% representation=")
+      self.direcionado = bool(self.clean(direcionamento, "% directed="))
+      self.ponderado = bool(self.clean(ponderacao, "% weighted="))
+
+      if self.repr == "matriz":
+        self.criarMatrizAdjacencias()
+
+      else:  # self.repr == "lista":
+        self.listaDict = {}
+
+      #  ---- Vertices
+      # No arquivo pajek, a lista de vertice esta salva como:
+      # *Vertices n
+      # Entao criamos um 'for i' que percorra esse "n"
+      n = int(self.clean(file.readline(), "*Vertices "))
+      for i in range(n):
+        vertice = file.readline().replace("\n", "").split(" ")
+        self.adicionarVertice(vertice[1])
+
+      #  ---- Arestas
+      file.readline()  # Retira o *arcs / *edge
+
+      if self.repr == "matriz":
+
+        linha = file.readline()
+        while linha != "":
+          aresta = linha.replace("\n", "").split(" ")
+          ver1 = self.vertices[int(aresta[0])]
+          ver2 = self.vertices[int(aresta[1])]
+
+          # Se a linha tiver peso, adiciona o peso:
+          if self.ponderado:
+            peso = int(aresta[2])
+            self.adicionarAresta(ver1, ver2, peso)
+
+          # Se nao, adiciona a aresta com 1 de "peso":
+          else:
+            self.adicionarAresta(ver1, ver2)
 
           linha = file.readline()
-          while linha != "":
-            print(linha)
-            aresta = linha.replace("\n", "").split(" ")
-            ver1 = self.vertices[int(aresta[0])]
-            ver2 = self.vertices[int(aresta[1])]
 
-            # Se a linha tiver peso, adiciona o peso:
-            if self.ponderado:
-              peso = int(aresta[2])
-              self.adicionarAresta(ver1, ver2, peso)
+      else:  # self.repr == "lista":
 
-            # Se nao, adiciona a aresta com 1 de "peso":
-            else:
-              self.adicionarAresta(ver1, ver2)
+        aresta = []
+        linha = file.readline()
+        while linha != "":
+          aresta = file.readline().replace("\n", "").split(" ")
 
-            linha = file.readline()
+          # Se a linha tiver peso (3° parametro), adiciona o peso:
+          if self.ponderado:
+            self.listaDict[aresta[0]].append((aresta[1], int(aresta[2])))
 
-        else:  # self.repr == "lista":
+          else:
+            self.listaDict[aresta[0]].append(aresta[1], 1)
 
-          aresta = []
-          linha = file.readline() 
-          while linha != "":
-            aresta = linha.replace("\n", "").split(" ")
-            print(aresta)
-            # Se a linha tiver peso (3° parametro), adiciona o peso:
-            if self.ponderado:
-              self.listaDict[aresta[0]].append((aresta[1], int(aresta[2])))
-            else:
-              self.listaDict[aresta[0]].append(aresta[1], 1)
-
-            linha = file.readline()
+          linha = file.readline()
+       
 
     # ======================= Funções de representação ======================= #
 
     # ===== cria matriz de adjacências =====
 
+ # ======================= Funções de representação ======================= #
+
+  # ===== cria matriz de adjacências =====
   def criarMatrizAdjacencias(self):
       n = len(self.vertices)
       self.matrizAdjacencias = [[0] * n
