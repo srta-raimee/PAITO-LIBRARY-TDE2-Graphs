@@ -61,7 +61,6 @@ class Grafo:
     if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
       for vertice in self.vertices:
           nodeEccentricity = self.eccentricityFinder(vertice)
-          # nodesEccentricity[vertice] = nodeEccentricity
           eccentricities.append(nodeEccentricity)
 
       return eccentricities
@@ -123,14 +122,66 @@ class Grafo:
  # ======================= centrality measures ======================= #
 
   def closeness(self):
-    pass
+    # The purpose of Closeness is to find how close a node is from the others. As much closer it is to 1,
+    # more important the node is 'cause of its potential to spread informations faster :)
+  
+    closenesses = []
+    
+    if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
+      for vertice in self.vertices:
+          nodeCloseness = self.closenessFinder(vertice)
+          closenesses.append(nodeCloseness)
 
+      return closenesses
+  
+    else:
+      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
+    
   def betweenness(self):
     pass
 
-  def shortestPathFinder(self, vertice): # eh vou ter que achar isso aqui antes
-      pass
+  def closenessFinder(self, verticeInicial):
+    distancias = {}  
+    queue = []
+    visitados = []
     
+    if self.repr == "lista":
+        queue.append((verticeInicial, 0))  
+
+        while queue:
+            verticeAtual, distancia = queue.pop(0)  
+            if verticeAtual not in visitados:
+                visitados.append(verticeAtual)
+                distancias[verticeAtual] = distancia  
+
+                for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
+                    if vizinho not in visitados:
+                        queue.append((vizinho, distancia + 1)) 
+
+    else:  # para matriz
+        queue.append((verticeInicial, 0))  
+
+        while queue:
+            verticeAtual, distancia = queue.pop(0)
+            indiceVerticeAtual = self.vertices.index(verticeAtual)
+            if verticeAtual not in visitados:
+                visitados.append(verticeAtual)
+                distancias[verticeAtual] = distancia
+
+                for indice, adjacente in enumerate(self.matrizAdjacencias[indiceVerticeAtual]):
+                    if adjacente != 0 and self.vertices[indice] not in visitados:
+                        queue.append((self.vertices[indice], distancia + 1))
+
+    somaDistancias = sum(distancias.values())
+    qntVertices = len(self.vertices)
+    
+    if somaDistancias > 0:
+        closeness = (qntVertices - 1) / somaDistancias
+    else:
+        closeness = 0
+
+    return closeness
+
  # ======================= manipulações básicas e auxiliares do grafo ======================= #
   def componentsSCC(self): # strongly connected components
     # "why do we need this thing???" you might be asking. It returns how many SSC we have in the graph. You'll need it, trust me.
