@@ -4,7 +4,7 @@ import paito
 
 dados = pd.read_csv("tabela.csv")
 
-paito = paito.Grafo(repr="lista", direcionado=False, ponderado=True)
+paito = paito.Grafo(repr="lista", direcionado=False, ponderado=False)
 
 paito.adicionarVertice("A")
 paito.adicionarVertice("B")
@@ -28,10 +28,11 @@ paito.adicionarVertice("E")
 
 #Exemplo do prof pra eu me basear:
 paito.adicionarAresta('A', 'B')
-paito.adicionarAresta('A', 'C')
+paito.adicionarAresta('A', 'E')
 paito.adicionarAresta('B', 'C')
 paito.adicionarAresta('B', 'D')
 paito.adicionarAresta('C', 'D')
+paito.adicionarAresta('C', 'E')
 paito.adicionarAresta('D', 'E')
 
 
@@ -57,11 +58,13 @@ paito.adicionarAresta('D', 'E')
 # paito.adicionarAresta('D', 'E')
 # paito.adicionarAresta('E', 'F')
 # paito.adicionarAresta('F', 'D')
+# print(paito)
 
-print(paito)
+# print(f"Centralida de intermediação do vertice B: {paito.betweenness('B')}")
+# print(f"Centralida de intermediação de todos os vertices: \n{paito.betweenness()}\n")
 
-print(f"Centralida de intermediação do vertice B: {paito.betweenness('B')}")
-print(f"Centralida de intermediação de todos os vertices: \n{paito.betweenness()}\n")
+# print(paito.radius())
 
-print(paito.radius())
+# print(paito.pathFinder("A"))
 
+print(paito.highestBet())

@@ -1,4 +1,3 @@
-from sys import builtin_module_names
 from time import time
 import random
 #Imports de plotagem:
@@ -26,24 +25,8 @@ class Grafo:
       if self.repr == "lista":
         self.listaDict = {}
 
-# Nesta primeira parte do projeto, é necessário incrementar a biblioteca com mais as funcionalidades
-# descritas a seguir:
-# done - 1) Extração de componentes: para grafos não direcionados, retorne as componentes (conjuntos de
-# vértices, que são alcançáveis entre si);
-# done  2) Extração de componentes fortemente conectadas: para grafos direcionados, retorne as componentes
-# fortemente conectadas (conjuntos de vértices);
-# 3) Função que calcula a Centralidade de Grau (Degree Centrality) de cada vértice do grafo;
 # 4) Função que calcula a Centralidade de Intermediação (Betweenness Centrality) de cada vértice do
 # grafo;
-# done 5) Função que calcula a Centralidade de Proximidade (Closeness Centrality) de cada vértice do grafo;
-# done 6) Excentricidade vértices do grafo: implemente uma função que retorne a excentricidade de cada
-# vértice do grafo. Essa função só deve ser executada caso o grafo seja conectado. No caso de o grafo
-# não ser conectado, deve ser reportada uma exceção ou a função deve retornar um valor de
-# excentricidade nulo para cada vértice.
-# done 7) Diâmetro do grafo: implemente uma função que calcula o diâmetro do grafo. Essa função só deve ser
-# executada caso o grafo seja conexo.
-# done 8) Raio do grafo: implemente uma função que calcula o raio do grafo. Essa função só deve ser executada
-# caso o grafo seja conexo.
 # 9) Função que calcula a centralidade de intermediação (Edge Betweenness) de cada aresta do grafo;
 # 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
 # entrada, retorne n subgrafos que representam as principais comunidades de acordo com o algoritmo
@@ -51,7 +34,7 @@ class Grafo:
 # (parâmetro) da função
 
  # ======================= cálculo de excentricidade ======================= #
-  
+     
   def eccentricity(self):
     # the purpose here is to find what's the maximum distance between one node to all of the others
     # which means we can run BFS starting from every node and return the maximum distance of each
@@ -121,6 +104,20 @@ class Grafo:
 
  # ======================= centrality measures ======================= #
 
+  def degreeCentrality(self):
+     # It considers that the most central node is that one with the highest number of connections
+     # closer to 1 = most central
+     degreeCentralities = {}
+     for vertice in self.vertices:
+        degree = self.degree(vertice)
+        n = len(self.vertices) - 1
+        dCentrality = degree / n 
+        degreeCentralities[vertice] = dCentrality
+
+     return max(degreeCentralities.values())
+
+# ======================= CLOSENESS ======================= #
+
   def closeness(self): # DEFINETELY WORKING
     # The purpose of Closeness is to find how close a node is from the others. As much closer it is to 1,
     # more important the node is 'cause of its potential to spread informations faster :)
@@ -183,84 +180,112 @@ class Grafo:
 
     return closeness
 
-  # Centralidade de Intermediação (betweenness):
-  def betweenness(self, verticeInicial=None):
-    # Cria o dicionario onde vamos colocar aa centralidadea betweenness:
-    betweenness = {}
+# ======================= BETWEENNESS ======================= #
 
-    for vertice in self.vertices:
-      betweenness[vertice] = 0
+# def bet(self):
+  #    bets = []
+  #    for vertice in self.vertices:
+  #       bets.append(self.shortestPathsFinder(vertice))
 
-    # Para cada variável como origem:
-    for s in self.vertices:
-      # Reinicia as variáveis para o novo vertice:
-      pilhaVisitados = [] # Armazena a ordem em que os vértices são visitados
-      predecessors = {}   # Armazena os predecessores de cada vértice no caminho mais curto
-      distance = {}       # Armazena a distância da origem 's' a cada vértice
-      delta = {}          # Armazena o número de caminhos mais curtos que passam por cada vértice
-      sigma = {}          # Conta o número de caminhos mais curtos que chegam a cada vértice
+  #    return bets 
+
+  def pathFinder(self, verticeInicial):
+      predecessores = {}
+      distanciaAcumulada = {}
 
       for vertice in self.vertices:
-        predecessors[vertice] = []
-        distance[vertice] = -1
-        sigma[vertice] = 0 
-        delta[vertice] = 0
+          distanciaAcumulada[vertice] = float('inf')
+          predecessores[vertice] = []
 
-      distance[s] = 0 # Definimos "0" a distância do vertice para ele mesmo.
-      sigma[s] = 1
+      distanciaAcumulada[verticeInicial] = 0.0
 
-      queue = [s]
+      q = []
+      for vertice in self.vertices:
+          q.append(vertice)
 
-      # Realiza a busca em largunra (BFS):
-      while queue:
-        v = queue.pop(0)
-        pilhaVisitados.append(v)
-        for vizinho in self.listaDict[v]:
+      while len(q) > 0:
+          verticeAtual = self.minPath(q, distanciaAcumulada)
+          if verticeAtual is None:
+              break
+          q.remove(verticeAtual)
 
-          verticeVizinho = vizinho[0]
+          for vizinho in self.pegaVizinhos(verticeAtual):
+              novaDistancia = distanciaAcumulada[verticeAtual] + 1
 
-          # Se a distancia for < 0 (ou seja, não é o próprio vertice de origem) ele conta
-          #  1 a mais no caminho andado, além de adicionar o vertice percorrido na
-          #  lista de visitados:
-          if distance[verticeVizinho] < 0:
-            queue.append(verticeVizinho)
-            distance[verticeVizinho] = distance[v] + 1
+              if novaDistancia < distanciaAcumulada[vizinho]:
+                  distanciaAcumulada[vizinho] = novaDistancia
+                  predecessores[vizinho] = [verticeAtual]
+              elif novaDistancia == distanciaAcumulada[vizinho]:
+                  predecessores[vizinho].append(verticeAtual)
 
-          # Não entendi essa budega
-          if distance[verticeVizinho] == distance[v] + 1:
-            sigma[verticeVizinho] += sigma[v]
-            predecessors[verticeVizinho].append(v)
+      caminhos = {}
+      for vertice in self.vertices:
+          caminhos[vertice] = self.reconstruirCaminhos(verticeInicial, vertice, predecessores)
 
-      # Ainda não entendi também.    
-      while pilhaVisitados:
-          w = pilhaVisitados.pop()
-          for predecessor in predecessors[w]:
-              delta[predecessor] += (sigma[predecessor] / sigma[w]) * (1 + delta[w])
-          if w != s:
-              betweenness[w] += delta[w] / 2
+      return caminhos
 
-    # Return: ----------------------------------------------------------
-    # Se foi peço a intermediação de um vertice em especifico:
-    if verticeInicial:
-       return betweenness[verticeInicial]
-    # Se não definiu nenhum vertice, ele retorna um dict com todas as intermediações:
-    else:
-      betweenness = {k: betweenness[k] for k in sorted(betweenness)}
-      return betweenness
-  # ------ Cabô betweenness ------ #
+  def reconstruirCaminhos(self, verticeInicial, vertice, predecessores):
+      if vertice == verticeInicial:
+          return [[vertice]]
+      if not predecessores[vertice]:
+          return []
+      
+      caminhos = []
+      for predecessor in predecessores[vertice]:
+          for caminho in self.reconstruirCaminhos(verticeInicial, predecessor, predecessores):
+              caminhos.append(caminho + [vertice])
+      
+      return caminhos
 
-  def degreeCentrality(self):
-     # It considers that the most central node is that one with the highest number of connections
-     # closer to 1 = most central
-     degreeCentralities = {}
-     for vertice in self.vertices:
-        degree = self.degree(vertice)
-        n = len(self.vertices) - 1
-        dCentrality = degree / n 
-        degreeCentralities[vertice] = dCentrality
+  def minPath(self, q, distanciaAcumulada):
+    minVertice = None
+    minDistancia = float('inf')
+    for vertice in q:
+        if distanciaAcumulada[vertice] < minDistancia:
+            minDistancia = distanciaAcumulada[vertice]
+            minVertice = vertice
+    return minVertice
 
-     return max(degreeCentralities.values())
-
+  def allNodesBet(self):
+    # A node is considered central if it is part of most of the shortest paths of all
+    # possible pairs of nodes in which it is not at the beginning or end of the path
+    centralidade = {vertice: 0 for vertice in self.vertices}
+    for verticeInicial in self.vertices:
+        caminhos = self.pathFinder(verticeInicial)
+        for vertice in self.vertices:
+            if vertice != verticeInicial:
+                for caminho in caminhos[vertice]:
+                    for v in caminho[1:-1]:  # isso aqui não conta o node inicial nem o final
+                        centralidade[v] += 1 / len(caminhos[vertice])
+    
+    
+    n = len(self.vertices)
+    normalizacao = 1 / ((n - 1) * (n - 2))
+    for vertice in centralidade:
+        centralidade[vertice] *= normalizacao # aplica a normalização para deixar tudo menor que 1
+     
+    return centralidade # retorna a centralidade de cada vértice
+  
+  def highestBet(self):
+    # returns the nodes with highest betweenness
+    centralidade = {vertice: 0 for vertice in self.vertices}
+    for verticeInicial in self.vertices:
+        caminhos = self.pathFinder(verticeInicial)
+        for vertice in self.vertices:
+            if vertice != verticeInicial:
+                for caminho in caminhos[vertice]:
+                    for v in caminho[1:-1]:  # isso aqui não conta o node inicial nem o final
+                        centralidade[v] += 1 / len(caminhos[vertice])
+    
+    
+    n = len(self.vertices)
+    normalizacao = 1 / ((n - 1) * (n - 2))
+    for vertice in centralidade:
+        centralidade[vertice] *= normalizacao # aplica a normalização para deixar tudo menor que 1
+     
+ 
+    return [(vertice) for vertice in centralidade if centralidade[vertice] == max(centralidade.values())]
+  
  # ======================= manipulações básicas e auxiliares do grafo ======================= #
 
   def componentsSCC(self): # strongly connected components
@@ -826,6 +851,8 @@ class Grafo:
         inicio = time()
         predecessores = {}
         distanciaAcumulada = {}
+
+
         for vertice in self.vertices:
           distanciaAcumulada[vertice] = +1e10
           predecessores[vertice] = None
@@ -851,6 +878,7 @@ class Grafo:
               distanciaAcumulada[vizinho] = novaDistancia
     
               predecessores[vizinho] = verticeAtual
+
     
         caminho = []
         distanciaTotal = 10e9
@@ -942,6 +970,7 @@ class Grafo:
         self.repr = self.clean(representacao, "% representation=")
         self.direcionado = bool(self.clean(direcionamento, "% directed="))
         self.ponderado = bool(self.clean(ponderacao, "% weighted="))
+  
   def salvarPajek(self, arquivoPajek):
     with open(arquivoPajek, "w") as file:
       # ---- Armazenamento dos Dados:
@@ -1094,7 +1123,6 @@ class Grafo:
         return None
     
   def warshall(self):
-      
       if self.repr == "matriz":
         matrizWarshall = self.copiaMatriz()
         for k in range(len(matrizWarshall)):
