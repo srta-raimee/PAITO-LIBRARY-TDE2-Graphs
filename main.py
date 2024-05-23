@@ -4,12 +4,12 @@ import paito
 
 dados = pd.read_csv("tabela.csv")
 
-paito = paito.Grafo(repr="lista", direcionado=False, ponderado=False)
+paito = paito.Grafo(repr="lista", direcionado=True, ponderado=False)
 
 paito.adicionarVertice("A")
 paito.adicionarVertice("B")
-paito.adicionarVertice("D")
 paito.adicionarVertice("C")
+paito.adicionarVertice("D")
 paito.adicionarVertice("E")
 # paito.adicionarVertice("F")
 # paito.adicionarVertice("G")
@@ -28,12 +28,13 @@ paito.adicionarVertice("E")
 
 #Exemplo do prof pra eu me basear:
 paito.adicionarAresta('A', 'B')
-paito.adicionarAresta('A', 'E')
+# paito.adicionarAresta('A', 'E')
 paito.adicionarAresta('B', 'C')
 paito.adicionarAresta('B', 'D')
 paito.adicionarAresta('C', 'D')
 paito.adicionarAresta('C', 'E')
 paito.adicionarAresta('D', 'E')
+paito.adicionarAresta('E', 'C')
 
 
 # paito.adicionarAresta('A', 'B')
@@ -60,11 +61,13 @@ paito.adicionarAresta('D', 'E')
 # paito.adicionarAresta('F', 'D')
 # print(paito)
 
-# print(f"Centralida de intermediação do vertice B: {paito.betweenness('B')}")
-# print(f"Centralida de intermediação de todos os vertices: \n{paito.betweenness()}\n")
+print(paito)
 
-# print(paito.radius())
+todosCaminhos = paito.allPathsFinder()
+for i in todosCaminhos:
+    print(f"{i}: {todosCaminhos[i]}")
 
-# print(paito.pathFinder("A"))
+print(paito.betweenness('C'))
 
-print(paito.highestBet())
+# print(paito.allNodesBet())
+# print(paito.highestBet())

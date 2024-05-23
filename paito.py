@@ -189,6 +189,121 @@ class Grafo:
 
   #    return bets 
 
+  # Começo da Versão Galves -------------------------------------------------------------------
+  def betweenness(self, verticeBet):
+    # Pega todos os caminhos:
+    todosCaminhos = self.allPathsFinder()
+
+    # ---- Verifica a centralidade de Intermediação:
+    # Formulas:
+    def C(n, g):
+      return n / g
+
+    def Normalizacao(C):
+      return (2 / ((len(self.vertices)-1)*(len(self.vertices)-2))) * C
+    
+    # Contagem:
+    temp = []
+    n = 0
+    g = 0
+    for vInit in todosCaminhos:
+      for vFinal in todosCaminhos[vInit]:
+        temp = []
+        # Se existir um possível caminho:
+        if 0 < len(todosCaminhos[vInit][vFinal]):
+          # Verifica se realmente é um caminho em que pode ter um vertice no meio:
+          for caminho in todosCaminhos[vInit][vFinal]:
+            if type(caminho) == list:
+              print(f"É um possivel caminho: {caminho}")
+              count = 0
+               
+
+    
+  
+  def allPathsFinder(self):
+    # Preparando todos os caminhos:
+    todosCaminhos = {}
+
+    for vInicial in self.vertices:
+      todosCaminhos[vInicial] = {}
+
+      for vObjetivo in self.vertices:
+         if vObjetivo != vInicial:
+          todosCaminhos[vInicial][vObjetivo] = []
+
+    # Vamos começar a busca:
+    vertices = [v for v in self.vertices]
+    for vInicial in self.vertices:
+      vertices.pop(0)
+
+      for vFinal in vertices:
+
+        if vFinal != vInicial:
+          caminho = []
+
+          busca = self.caminhando(vInicial, vFinal, 1)
+
+          if busca:
+            # print(f"Busca de {vInicial} - {vFinal}: {busca}")
+            for caminho in busca:
+            
+              todosCaminhos[vInicial][vFinal].append(caminho)   
+    
+    return todosCaminhos
+
+  def caminhando(self, vAtual, vFinal, count):
+    
+    # Pega todos os vizinhos do vertice atual.
+    vizinhos = [v for v in self.pegaVizinhos(vAtual)]
+
+    # Verifica se já não estrapolou o limite:
+    #   Essa regra impede que a recursividade fique infinita, pois,
+    #  seguindo a logica, é impossível dar mais saltos que a quantidade
+    #  de vertices existentes no grafo.
+    if count == len(self.vertices):
+      return None
+
+    # Se o vertice que procuramos estiver no vizinho do atual, returna.
+    if vFinal in vizinhos:
+      return [vAtual, vFinal]
+    
+    # Se não, repete o processo até que encontre o vertice objetivo
+    # vizinho de algum dos outros vizinhos.
+    else:
+      caminhos = []
+      # Então, pra cada vizinho...
+      for vizinho in vizinhos:
+        buscaMaior = self.caminhando(vizinho, vFinal, count+1)
+
+        # Verifica se foi encontrado o caminho
+        if buscaMaior:
+          caminho = [vAtual]
+
+          # Se o retorno for uma matriz (ou seja, um caminho maior do que o minimo)
+          # ele ignora, pois queremos apenas os menores caminhos.
+          for v in buscaMaior:
+            # O que eu disse em cima é aplicado aqui:
+            if type(v) == list:
+              caminho.pop(0)
+              temp = [vAtual]
+              for i in v:
+                temp.append(i)
+              
+              caminho.append(temp)
+              
+                   
+            else:
+              caminho.append(v)
+
+          # print(f"caminho: {caminho}")
+
+          # Aqui só verifica se pode incluir o caminho verificado:
+          caminhos.append(caminho)
+
+      return caminhos
+     
+  # Final da Versão Galves -------------------------------------------------------------------
+
   def pathFinder(self, verticeInicial):
       predecessores = {}
       distanciaAcumulada = {}
@@ -870,8 +985,7 @@ class Grafo:
           q.remove(verticeAtual)
     
           for vizinho in self.pegaVizinhos(verticeAtual):
-            novaDistancia = distanciaAcumulada[verticeAtual] + \
-                        self.recuperarPeso(verticeAtual, vizinho)
+            novaDistancia = distanciaAcumulada[verticeAtual] + self.recuperarPeso(verticeAtual, vizinho)
     
             if novaDistancia < distanciaAcumulada[vizinho]:
     
