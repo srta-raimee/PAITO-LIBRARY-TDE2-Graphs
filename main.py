@@ -1,3 +1,4 @@
+
 import pandas as pd
 import paito
 
@@ -10,25 +11,28 @@ paito.adicionarVertice("B")
 paito.adicionarVertice("D")
 paito.adicionarVertice("C")
 paito.adicionarVertice("E")
-paito.adicionarVertice("F")
-paito.adicionarVertice("G")
+# paito.adicionarVertice("F")
+# paito.adicionarVertice("G")
 # paito.adicionarVertice("H")
-#cu
 
-paito.adicionarAresta('A', 'C')
-paito.adicionarAresta('A', 'D')
-paito.adicionarAresta('A', 'F')
-paito.adicionarAresta('B', 'E')
-paito.adicionarAresta('B', 'F')
-paito.adicionarAresta('C', 'E')
-paito.adicionarAresta('C', 'D')
-paito.adicionarAresta('C', 'G')
-paito.adicionarAresta('E', 'F')
 
-# paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('B', 'C')
+# paito.adicionarAresta('A', 'C')
+# paito.adicionarAresta('A', 'D')
+# paito.adicionarAresta('A', 'F')
+# paito.adicionarAresta('B', 'E')
+# paito.adicionarAresta('B', 'F')
+# paito.adicionarAresta('C', 'E')
 # paito.adicionarAresta('C', 'D')
-# paito.adicionarAresta('D', 'A')
+# paito.adicionarAresta('C', 'G')
+# paito.adicionarAresta('E', 'F')
+
+#Exemplo do prof pra eu me basear:
+paito.adicionarAresta('A', 'B')
+paito.adicionarAresta('A', 'C')
+paito.adicionarAresta('B', 'C')
+paito.adicionarAresta('B', 'D')
+paito.adicionarAresta('C', 'D')
+paito.adicionarAresta('D', 'E')
 
 
 # paito.adicionarAresta('A', 'B')
@@ -54,7 +58,10 @@ paito.adicionarAresta('E', 'F')
 # paito.adicionarAresta('E', 'F')
 # paito.adicionarAresta('F', 'D')
 
+print(paito)
 
+print(f"Centralida de intermediação do vertice B: {paito.betweenness('B')}")
+print(f"Centralida de intermediação de todos os vertices: \n{paito.betweenness()}\n")
 
 print(paito.radius())
 

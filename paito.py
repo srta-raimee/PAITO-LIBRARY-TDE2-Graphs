@@ -183,6 +183,7 @@ class Grafo:
 
     return closeness
 
+  # Centralidade de Intermediação (betweenness):
   def betweenness(self, verticeInicial=None):
     # Cria o dicionario onde vamos colocar aa centralidadea betweenness:
     betweenness = {}
@@ -190,36 +191,47 @@ class Grafo:
     for vertice in self.vertices:
       betweenness[vertice] = 0
 
+    # Para cada variável como origem:
     for s in self.vertices:
-      # Reinicia as variáveis: ---------------
-      pilhaVisitados = []
-      predecessors = {}
-      distance = {}
-      sigma = {}
+      # Reinicia as variáveis para o novo vertice:
+      pilhaVisitados = [] # Armazena a ordem em que os vértices são visitados
+      predecessors = {}   # Armazena os predecessores de cada vértice no caminho mais curto
+      distance = {}       # Armazena a distância da origem 's' a cada vértice
+      delta = {}          # Armazena o número de caminhos mais curtos que passam por cada vértice
+      sigma = {}          # Conta o número de caminhos mais curtos que chegam a cada vértice
 
       for vertice in self.vertices:
         predecessors[vertice] = []
         distance[vertice] = -1
         sigma[vertice] = 0 
+        delta[vertice] = 0
 
-      distance[s] = 0
+      distance[s] = 0 # Definimos "0" a distância do vertice para ele mesmo.
       sigma[s] = 1
 
       queue = [s]
 
-      # Começa a verificar (não faço ideia do que ta acontecendo AAAAAAAAAAAAAAA): ----------------
+      # Realiza a busca em largunra (BFS):
       while queue:
         v = queue.pop(0)
         pilhaVisitados.append(v)
-        for neighbor, _ in self.listaDict[v]:
-          if distance[neighbor] < 0:
-            queue.append(neighbor)
-            distance[neighbor] = distance[v] + 1
-          if distance[neighbor] == distance[v] + 1:
-            sigma[neighbor] += sigma[v]
-            predecessors[neighbor].append(v)
+        for vizinho in self.listaDict[v]:
 
-      delta = {v: 0 for v in self.vertices}
+          verticeVizinho = vizinho[0]
+
+          # Se a distancia for < 0 (ou seja, não é o próprio vertice de origem) ele conta
+          #  1 a mais no caminho andado, além de adicionar o vertice percorrido na
+          #  lista de visitados:
+          if distance[verticeVizinho] < 0:
+            queue.append(verticeVizinho)
+            distance[verticeVizinho] = distance[v] + 1
+
+          # Não entendi essa budega
+          if distance[verticeVizinho] == distance[v] + 1:
+            sigma[verticeVizinho] += sigma[v]
+            predecessors[verticeVizinho].append(v)
+
+      # Ainda não entendi também.    
       while pilhaVisitados:
           w = pilhaVisitados.pop()
           for predecessor in predecessors[w]:
@@ -227,11 +239,15 @@ class Grafo:
           if w != s:
               betweenness[w] += delta[w] / 2
 
+    # Return: ----------------------------------------------------------
+    # Se foi peço a intermediação de um vertice em especifico:
     if verticeInicial:
        return betweenness[verticeInicial]
-    
+    # Se não definiu nenhum vertice, ele retorna um dict com todas as intermediações:
     else:
+      betweenness = {k: betweenness[k] for k in sorted(betweenness)}
       return betweenness
+  # ------ Cabô betweenness ------ #
 
   def degreeCentrality(self):
      # It considers that the most central node is that one with the highest number of connections
