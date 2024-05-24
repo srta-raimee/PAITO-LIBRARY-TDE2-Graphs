@@ -25,8 +25,6 @@ class Grafo:
       if self.repr == "lista":
         self.listaDict = {}
 
-# 4) Função que calcula a Centralidade de Intermediação (Betweenness Centrality) de cada vértice do
-# grafo;
 # 9) Função que calcula a centralidade de intermediação (Edge Betweenness) de cada aresta do grafo;
 # 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
 # entrada, retorne n subgrafos que representam as principais comunidades de acordo com o algoritmo
@@ -135,51 +133,83 @@ class Grafo:
     queue = []
     visitados = []
     
-    if self.repr == "lista":
-        queue.append((verticeInicial, 0))  
 
-        while queue:
-            verticeAtual, distancia = queue.pop(0)  
-            if verticeAtual not in visitados:
-                visitados.append(verticeAtual)
-                distancias[verticeAtual] = distancia  
-
-                for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
-                    if vizinho not in visitados:
-                        queue.append((vizinho, distancia + 1)) 
-
-    else:  # para matriz
-        queue.append((verticeInicial, 0))  
-
-        while queue:
-            verticeAtual, distancia = queue.pop(0)
-            indiceVerticeAtual = self.vertices.index(verticeAtual)
-            if verticeAtual not in visitados:
-                visitados.append(verticeAtual)
-                distancias[verticeAtual] = distancia
-
-                for indice, adjacente in enumerate(self.matrizAdjacencias[indiceVerticeAtual]):
-                    if adjacente != 0 and self.vertices[indice] not in visitados:
-                        queue.append((self.vertices[indice], distancia + 1))
-
-    somaDistancias = sum(distancias.values())
-    qntVertices = len(self.vertices)
-    
     if not self.direcionado:
-      if somaDistancias > 0:
-          closeness = (qntVertices - 1) / somaDistancias
-      else:
-          closeness = 0
+        if self.repr == "lista":
+            queue.append((verticeInicial, 0))  
 
-    else: # directed graph
-      #  indegree = self.indegree(verticeInicial)
-       if somaDistancias > 0:
-          closeness = somaDistancias / (qntVertices - 1)
-       else:
-          closeness = 0
+            while queue:
+                verticeAtual, distancia = queue.pop(0)  
+                if verticeAtual not in visitados:
+                    visitados.append(verticeAtual)
+                    distancias[verticeAtual] = distancia  
+
+                    for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
+                        if vizinho not in visitados:
+                            queue.append((vizinho, distancia + 1)) 
+
+        else:  # para matriz
+            queue.append((verticeInicial, 0))  
+
+            while queue:
+                verticeAtual, distancia = queue.pop(0)
+                indiceVerticeAtual = self.vertices.index(verticeAtual)
+                if verticeAtual not in visitados:
+                    visitados.append(verticeAtual)
+                    distancias[verticeAtual] = distancia
+
+                    for indice, adjacente in enumerate(self.matrizAdjacencias[indiceVerticeAtual]):
+                        if adjacente != 0 and self.vertices[indice] not in visitados:
+                            queue.append((self.vertices[indice], distancia + 1))
+
+        somaDistancias = sum(distancias.values())
+        qntVertices = len(self.vertices)
+        
+        if somaDistancias > 0:
+            closeness = (qntVertices - 1) / somaDistancias
+        else:
+            closeness = 0
+        
+
+    else: # directed graphs
+        grafoTransposto = self.transpor()        
+        if grafoTransposto.repr == "lista":
+            queue.append((verticeInicial, 0))  
+
+            while queue:
+                verticeAtual, distancia = queue.pop(0)  
+                if verticeAtual not in visitados:
+                    visitados.append(verticeAtual)
+                    distancias[verticeAtual] = distancia  
+
+                    for vizinho in sorted(grafoTransposto.pegaVizinhos(verticeAtual)):
+                        if vizinho not in visitados:
+                            queue.append((vizinho, distancia + 1)) 
+
+        else:  # para matriz
+            queue.append((verticeInicial, 0))  
+
+            while queue:
+                verticeAtual, distancia = queue.pop(0)
+                indiceVerticeAtual = grafoTransposto.vertices.index(verticeAtual)
+                if verticeAtual not in visitados:
+                    visitados.append(verticeAtual)
+                    distancias[verticeAtual] = distancia
+
+                    for indice, adjacente in enumerate(grafoTransposto.matrizAdjacencias[indiceVerticeAtual]):
+                        if adjacente != 0 and grafoTransposto.vertices[indice] not in visitados:
+                            queue.append((grafoTransposto.vertices[indice], distancia + 1))
+
+        somaDistancias = sum(distancias.values())
+        qntVertices = len(grafoTransposto.vertices)
+        
+        if somaDistancias > 0:
+            closeness = somaDistancias / (qntVertices - 1)
+        else:
+            closeness = 0
 
     return closeness
-
+  
 # ======================= BETWEENNESS ======================= #
 
 # def bet(self):
