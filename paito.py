@@ -226,27 +226,39 @@ class Grafo:
 
     # ---- Verifica a centralidade de Intermediação:
     # Formulas:
-    def C(n, g):
+    def Cint(n, g):
       return n / g
 
     def Normalizacao(C):
       return (2 / ((len(self.vertices)-1)*(len(self.vertices)-2))) * C
     
     # Contagem:
+    flag = False
     temp = []
-    n = 0
-    g = 0
-    for vInit in todosCaminhos:
-      for vFinal in todosCaminhos[vInit]:
-        temp = []
+    C = 0
+    for vInit in todosCaminhos: # <- Para todos os vertices iniciais:
+      for vFinal in todosCaminhos[vInit]: # <- Para todos os vertices finais:
         # Se existir um possível caminho:
         if 0 < len(todosCaminhos[vInit][vFinal]):
+          countN = 0
+          countG = 0
+
           # Verifica se realmente é um caminho em que pode ter um vertice no meio:
           for caminho in todosCaminhos[vInit][vFinal]:
             if type(caminho) == list:
-              print(f"É um possivel caminho: {caminho}")
-              count = 0
-               
+              # print(f"É um possivel caminho de {vInit} - {vFinal}: {caminho}")
+              temp = [caminho[i] for i in range(1, len(caminho))]
+              countG += 1
+              print(f"Caminho entre {vInit} - {vFinal}: {caminho}")
+              if verticeBet in temp:
+                flag = True
+                countN += 1
+          
+              if flag:
+                C += countN / countG
+                flag = False
+
+    return C                
 
     
   
@@ -307,28 +319,28 @@ class Grafo:
 
         # Verifica se foi encontrado o caminho
         if buscaMaior:
-          caminho = [vAtual]
+          caminhoMenor = [vAtual]
+          caminhoMaior = []
+          menor = True
 
-          # Se o retorno for uma matriz (ou seja, um caminho maior do que o minimo)
-          # ele ignora, pois queremos apenas os menores caminhos.
           for v in buscaMaior:
-            # O que eu disse em cima é aplicado aqui:
             if type(v) == list:
-              caminho.pop(0)
               temp = [vAtual]
-              for i in v:
-                temp.append(i)
-              
-              caminho.append(temp)
-              
-                   
+              for l in v:
+                temp.append(l)
+
+              caminhoMaior.append(temp)
+              menor = False
+
             else:
-              caminho.append(v)
+              caminhoMenor.append(v)
 
-          # print(f"caminho: {caminho}")
-
-          # Aqui só verifica se pode incluir o caminho verificado:
-          caminhos.append(caminho)
+          if menor:
+            caminhos.append(caminhoMenor)
+          else:
+            for cam in caminhoMaior:
+              caminhos.append(cam)
+            
 
       return caminhos
      
