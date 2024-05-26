@@ -4,7 +4,7 @@ import paito
 
 dados = pd.read_csv("tabela.csv")
 
-paito = paito.Grafo(repr="lista", direcionado=True, ponderado=False)
+paito = paito.Grafo(repr="lista", direcionado=False, ponderado=False)
 
 paito.adicionarVertice("A")
 paito.adicionarVertice("B")
@@ -16,58 +16,21 @@ paito.adicionarVertice("E")
 # paito.adicionarVertice("H")
 
 
-# paito.adicionarAresta('A', 'C')
-# paito.adicionarAresta('A', 'D')
-# paito.adicionarAresta('A', 'F')
-# paito.adicionarAresta('B', 'E')
-# paito.adicionarAresta('B', 'F')
-# paito.adicionarAresta('C', 'E')
-# paito.adicionarAresta('C', 'D')
-# paito.adicionarAresta('C', 'G')
-# paito.adicionarAresta('E', 'F')
+paito.adicionarAresta("A", "B")
+paito.adicionarAresta("A", "E")
+paito.adicionarAresta("B", "C")
+paito.adicionarAresta("B", "D")
+paito.adicionarAresta("D", "E")
+paito.adicionarAresta("C", "E")
+paito.adicionarAresta("C", "D")
 
-#Exemplo do prof pra eu me basear:
-paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('A', 'E')
-paito.adicionarAresta('B', 'C')
-paito.adicionarAresta('B', 'D')
-paito.adicionarAresta('C', 'D')
-paito.adicionarAresta('C', 'E')
-paito.adicionarAresta('D', 'E')
-paito.adicionarAresta('E', 'C')
-
-
-# paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('B', 'C')
-# paito.adicionarAresta('B', 'E')
-# paito.adicionarAresta('B', 'F')
-# # paito.adicionarAresta('C', 'G') 
-# paito.adicionarAresta('C', 'D')
-# paito.adicionarAresta('D', 'C')
-# # paito.adicionarAresta('D', 'H')
-# paito.adicionarAresta('E', 'A')
-# paito.adicionarAresta('E', 'F')
-# paito.adicionarAresta('F', 'G')
-# paito.adicionarAresta('G', 'F')
-# paito.adicionarAresta('G', 'H')
-
-
-# paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('B', 'C')
-# paito.adicionarAresta('C', 'A')
-# paito.adicionarAr esta('C', 'D')
-# paito.adicionarAresta('D', 'E')
-# paito.adicionarAresta('E', 'F')
-# paito.adicionarAresta('F', 'D')
 # print(paito)
 
-print(paito)
+# print(paito.pathFinder("A"))
+# print(paito.qtdShortestPaths("B", "E"))
+# print(paito.shortestPathsEdge("A", "E"))
+# print(paito.edgeBetweenness("D", "C"))
 
-todosCaminhos = paito.allPathsFinder()
-for i in todosCaminhos:
-    print(f"{i}: {todosCaminhos[i]}")
-
-print(paito.betweenness('C'))
+print(paito.allEdgesBet())
 
 # print(paito.allNodesBet())
-# print(paito.highestBet())
