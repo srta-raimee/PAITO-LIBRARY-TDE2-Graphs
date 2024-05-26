@@ -26,7 +26,6 @@ class Grafo:
       if self.repr == "lista":
         self.listaDict = {}
 
-# 9) Função que calcula a centralidade de intermediação (Edge Betweenness) de cada aresta do grafo;
 # 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
 # entrada, retorne n subgrafos que representam as principais comunidades de acordo com o algoritmo
 # de Girvan-Newman. O número de subgrafos é um valor a ser informado pelo usuário como argumento 
@@ -214,6 +213,7 @@ class Grafo:
 # ======================= BETWEENNESS ======================= #
 
   def pathFinder(self, verticeInicial):
+      # dijkstra but to find the path between each node from an initial vertex
       predecessores = {}
       distanciaAcumulada = {}
 
@@ -249,14 +249,15 @@ class Grafo:
       return caminhos
 
   def reconstruirCaminhos(self, verticeInicial, vertice, predecessores):
-      if vertice == verticeInicial:
+      if vertice == verticeInicial: # o menor caminho até ele mesmo é o próprio node
           return [[vertice]]
-      if not predecessores[vertice]:
+      if not predecessores[vertice]: # não existe caminho até o node
           return []
       
       caminhos = []
       for predecessor in predecessores[vertice]:
           for caminho in self.reconstruirCaminhos(verticeInicial, predecessor, predecessores):
+              # função recursiva para retornar cada um dos caminhos mais curtos existentes entre os nodes
               caminhos.append(caminho + [vertice])
       
       return caminhos
@@ -316,7 +317,7 @@ class Grafo:
                 qtdShortestPaths[destination] = len(path)
             else:
                 qtdShortestPaths[destination] = 0
-
+        
         return qtdShortestPaths[verticeFinal] if verticeFinal in qtdShortestPaths else 0
 
     def shortestPathsEdge(verticeInicial, verticeFinal):
@@ -357,10 +358,52 @@ class Grafo:
     
     return allEdgesBet
            
+# ======================= EDGE BETWEENNESS ======================= #
+
+# WHY THE VALUES OF EACH EDGE BTWNS ARE SO DISCREPANT FROM PROFESSOR'S??
+# It's removing the right edges, but the values of edge bet... idk, let's check it out
+  def communityDetection(self, qntComunidades):
+    # separates the graph into comunities by removing the edges with highest btwns and creates a graph for each component
+    components = len(self.extractComponents())
+    allEdgesBet = self.allEdgesBet()
+    grafoComunidades = []  # Lista para armazenar os novos grafos de cada comunidade
+
+    while components < qntComunidades and allEdgesBet:
+        maiorEdgeBet = 0
+        maiorEdge = None
+
+        for edge, bet in allEdgesBet.items():
+            edgeBet = float(bet)
+            if edgeBet > maiorEdgeBet:
+                maiorEdgeBet = edgeBet
+                maiorEdge = edge
+        
+        if maiorEdge:
+            print(maiorEdge)
+            self.removerAresta(maiorEdge[0], maiorEdge[1])
+            components = len(self.extractComponents())
+            allEdgesBet = self.allEdgesBet()
+        else:
+            break
+
+    #  Criando um novo grafo para cada comunidade detectada
+    newComponents = self.extractComponents()
+    for component in newComponents:  
+        novoGrafo = Grafo(repr=self.repr, direcionado=self.direcionado, ponderado=self.ponderado) 
+        for element in component:
+            novoGrafo.adicionarVertice(element)
+            for vizinho in self.pegaVizinhos(element):
+               if vizinho in novoGrafo.vertices:
+                novoGrafo.adicionarAresta(element, vizinho) # recuperar as conexões que existem nos componentes
+        # print(novoGrafo) # para visualizar o grafo
+        grafoComunidades.append(novoGrafo)  # Adiciona o novo grafo à lista de grafos de comunidades
+
+    return grafoComunidades
+
 # ======================= manipulações básicas e auxiliares do grafo ======================= #
 
   def componentsSCC(self): # strongly connected components
-    # "why do we need this thing???" you might be asking. It returns how many ScC we have in the graph. You'll need it, trust me.
+    # "why do we need this thing???" you might be asking. It returns how many SCC we have in the graph. You'll need it, trust me.
     if self.direcionado:
       originalDFS = self.buscaProfundidadeKosaraju()
       grafoTransposto = self.transpor()
@@ -1080,8 +1123,8 @@ class Grafo:
 
             file.write(f"{aresta}\n")
 
-  # So pra deixar o carregarPajek mais limpo
   def clean(self, texto, retirar):
+     # So pra deixar o carregarPajek mais limpo
     return texto.replace(retirar, "").replace("\n", "")
 
   def carregarPajek(self, arquivoPajek):
