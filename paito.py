@@ -562,9 +562,13 @@ class Grafo:
       print(f"A vertice {vertice} já existe")
 
   def adicionarAresta(self, vertice1, vertice2, peso=1):
-    # Se o grafo não for ponderado, os pesos sao 1.
+    # Se o grafo não for ponderado, os pesos sao 1 (mesmo se passar um valor).
     if not self.ponderado:
       peso = 1
+
+    if peso <= 0:
+      print("Não é possível adicionar uma aresta com peso 0 ou menos")
+      return
 
     # Verifica se os vertices existem no grafo:
     if self.verificarVertice(vertice1, vertice2):
@@ -629,7 +633,7 @@ class Grafo:
           del linha[indiceVertice]
 
     else:
-      print("Vértice não encontrado no grafo.")
+      print(f"Vértice '{vertice}' não encontrado no grafo.")
 
   def removerAresta(self, vertice1, vertice2):
     if self.verificarVertice(vertice1, vertice2):
@@ -1352,14 +1356,18 @@ class Grafo:
       # Uma string da lista de vertices pra ficar mais bonito (e reutiliza-la depois)
       toString += "Vertices: "
 
-      listaVertices = "["
-      for vertice in self.vertices:
-        listaVertices += f"{vertice}, "
-      listaVertices = listaVertices[:-2] + "]"
+      if len(self.vertices) == 0:
+        listaVertices = ""
+
+      else:
+        listaVertices = "["
+        for vertice in self.vertices:
+          listaVertices += f"{vertice}, "
+        listaVertices = listaVertices[:-2] + "]"
 
       toString += f"{listaVertices} \n"
 
-      # Printagem da lista (se for lista): (ainda em fase de teste)
+      # Printagem da lista (se for lista):
       if self.repr == "lista":
         toString += "Lista de adjacências:\n"
         for vertice in self.listaDict:
