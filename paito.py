@@ -26,10 +26,6 @@ class Grafo:
       if self.repr == "lista":
         self.listaDict = {}
 
-# 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
-# entrada, retorne n subgrafos que representam as principais comunidades de acordo com o algoritmo
-# de Girvan-Newman. O número de subgrafos é um valor a ser informado pelo usuário como argumento 
-# (parâmetro) da função
 
  # ======================= eccentricity measure ======================= #
      
@@ -359,9 +355,7 @@ class Grafo:
     return allEdgesBet
            
 # ======================= EDGE BETWEENNESS ======================= #
-
-# WHY THE VALUES OF EACH EDGE BTWNS ARE SO DISCREPANT FROM PROFESSOR'S??
-# It's removing the right edges, but the values of edge bet... idk, let's check it out
+# It's removing the right edges, but the values of edge bet
   def communityDetection(self, qntComunidades):
     # separates the graph into comunities by removing the edges with highest btwns and creates a graph for each component
     components = len(self.extractComponents())
@@ -1295,6 +1289,7 @@ class Grafo:
 
             for vizinho in self.pegaVizinhos(u):
                 peso = self.recuperarPeso(u, vizinho)
+                print(f"u: {u} \nvizinho: {vizinho} \npeso: {peso} \npesos vizinhos: {pesos[vizinho]} \n")
                 if vizinho in q and peso < pesos[vizinho]:
                     predecessores[vizinho] = u
                     pesos[vizinho] = peso
