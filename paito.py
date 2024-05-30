@@ -555,52 +555,6 @@ class Grafo:
     else:
       print(f"A vertice {vertice} já existe")
 
-  def adicionarAresta(self, vertice1, vertice2, peso=1):
-    # Se o grafo não for ponderado, os pesos sao 1 (mesmo se passar um valor).
-    if not self.ponderado:
-      peso = 1
-
-    if peso <= 0:
-      print("Não é possível adicionar uma aresta com peso 0 ou menos")
-      return
-
-    # Verifica se os vertices existem no grafo:
-    if self.verificarVertice(vertice1, vertice2):
-        
-      # Para matriz de adjacencias:
-      if self.repr == "matriz":
-        indiceVertice1 = self.vertices.index(vertice1)
-        indiceVertice2 = self.vertices.index(vertice2)
-       
-        self.matrizAdjacencias[indiceVertice1][indiceVertice2] = peso
-
-        # Se o grafo não for direcionado, adicione a aresta inversa
-        if not self.direcionado:
-          self.matrizAdjacencias[indiceVertice2][indiceVertice1] = peso
-
-      # para lista de adjacências
-      else:
-        # Se ja existir a aresta, atualize o peso:
-        existe = False
-        # Percorre a lista de adjacencias do vertice1
-        for arestas in self.listaDict[vertice1]:
-          # Se encontrar, atualiza o peso da aresta:
-          if arestas[0] == vertice2:
-            self.atualizarPesoAresta(vertice1, vertice2, peso)
-            existe = True
-
-            if not self.direcionado:
-              self.atualizarPesoAresta(vertice2, vertice1, peso)
-
-        # Se não existir a aresta, adicione a aresta:
-        if not existe:
-          self.listaDict[vertice1].append([vertice2, peso])
-          if not self.direcionado:
-            self.listaDict[vertice2].append([vertice1, peso])
-  
-    else:
-      print(f"Não foi possivel adicionar a aresta entre {vertice1} e {vertice2}")
-
   def removerVertice(self, vertice):
     if vertice in self.vertices:
 
@@ -675,15 +629,11 @@ class Grafo:
         for vertice in self.listaDict[vertice1]:
             return vertice[0] == vertice2
       
-  def atualizarPesoAresta(self, vertice1, vertice2, novoPeso):
+  def atualizarPesoAresta(self, vertice1, vertice2, novoPeso=1):
     # Verifica se a aresta existe e se o grafo é ponderado pra poder adicionar
-    if not self.verificarAresta(vertice1, vertice2):
-      if self.ponderado:
-        self.adicionarAresta(vertice1, vertice2, novoPeso)
-      else:
-        self.adicionarAresta(vertice1, vertice2)
-
-    else:  # se a aresta existe, atualiza o peso
+    
+    verificar = self.verificarAresta(vertice1, vertice2)
+    if verificar:  # se a aresta existe, atualiza o peso
       if self.repr == "lista":
         for vertice in self.listaDict[vertice1]:
           if vertice[0] == vertice2:
@@ -700,6 +650,58 @@ class Grafo:
 
           else:
             self.matrizAdjacencias[indiceVertice1][indiceVertice2] = novoPeso
+
+    else:
+      if self.ponderado:
+        self.adicionarAresta(vertice1, vertice2, novoPeso)
+      else:
+        self.adicionarAresta(vertice1, vertice2)
+
+  def adicionarAresta(self, vertice1, vertice2, peso=1):
+    # Se o grafo não for ponderado, os pesos sao 1 (mesmo se passar um valor).
+    if not self.ponderado:
+      peso = 1
+
+    if peso <= 0:
+      print("Não é possível adicionar uma aresta com peso 0 ou menos")
+      return
+
+    # Verifica se os vertices existem no grafo:
+    if self.verificarVertice(vertice1, vertice2):
+        
+      # Para matriz de adjacencias:
+      if self.repr == "matriz":
+        indiceVertice1 = self.vertices.index(vertice1)
+        indiceVertice2 = self.vertices.index(vertice2)
+       
+        self.matrizAdjacencias[indiceVertice1][indiceVertice2] = peso
+
+        # Se o grafo não for direcionado, adicione a aresta inversa
+        if not self.direcionado:
+          self.matrizAdjacencias[indiceVertice2][indiceVertice1] = peso
+
+      # para lista de adjacências
+      else:
+        # Se ja existir a aresta, atualize o peso:
+        existe = False
+        # Percorre a lista de adjacencias do vertice1
+        for arestas in self.listaDict[vertice1]:
+          # Se encontrar, atualiza o peso da aresta:
+          if arestas[0] == vertice2:
+            self.atualizarPesoAresta(vertice1, vertice2, peso)
+            existe = True
+
+            if not self.direcionado:
+              self.atualizarPesoAresta(vertice2, vertice1, peso)
+
+        # Se não existir a aresta, adicione a aresta:
+        if not existe:
+          self.listaDict[vertice1].append([vertice2, peso])
+          if not self.direcionado:
+            self.listaDict[vertice2].append([vertice1, peso])
+  
+    else:
+      print(f"Não foi possivel adicionar a aresta entre {vertice1} e {vertice2}")
 
   def pegaVizinhos(self, vertice1):
     if self.repr == "matriz":
