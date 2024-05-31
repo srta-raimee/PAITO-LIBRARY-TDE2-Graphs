@@ -88,13 +88,20 @@ class Grafo:
  # ======================= diameter measure ======================= #
 
   def diameter(self): # The diameter of a graph is the maximum eccentricity value observed amongst all nodes
-      eccentricities = self.eccentricity()
-      return max(eccentricities)
+      if self.direcionado and self.SCC() or not self.direcionado and self.conexo():
+        eccentricities = self.eccentricity()
+        return max(eccentricities)
+      else:
+         raise Exception("O diâmetro de um grafo só pode ser calculado em grafos conectados.")
 
  # ======================= radius measure ======================= #
   def radius(self):
-     eccentricities = self.eccentricity()
-     return min(eccentricities)
+    if self.direcionado and self.SCC() or not self.direcionado and self.conexo():
+      eccentricities = self.eccentricity()
+      return min(eccentricities)
+    else:
+         raise Exception("O Raio de um grafo só pode ser calculado em grafos conectados.")
+ 
 
  # ======================= centrality measures ======================= #
 
@@ -631,7 +638,7 @@ class Grafo:
       
   def atualizarPesoAresta(self, vertice1, vertice2, novoPeso=1):
     # Verifica se a aresta existe e se o grafo é ponderado pra poder adicionar
-    
+
     verificar = self.verificarAresta(vertice1, vertice2)
     if verificar:  # se a aresta existe, atualiza o peso
       if self.repr == "lista":
