@@ -4,6 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 
 
 class Grafo:
@@ -105,17 +106,30 @@ class Grafo:
 
  # ======================= centrality measures ======================= #
 
-  def degreeCentrality(self):
+  def allDegreeCentralities(self):
+     # returns all degree centralities in the graph
      # It considers that the most central node is that one with the highest number of connections
      # closer to 1 = most central
      degreeCentralities = {}
      for vertice in self.vertices:
         degree = self.degree(vertice)
         n = len(self.vertices) - 1
-        dCentrality = degree / n 
+        dCentrality = round(degree / n, 4)
+        degreeCentralities[vertice] = dCentrality
+
+     return degreeCentralities
+
+  def highestDegreeCentralities(self):
+     degreeCentralities = {}
+     for vertice in self.vertices:
+        degree = self.degree(vertice)
+        n = len(self.vertices) - 1
+        dCentrality = round(degree / n, 4)
         degreeCentralities[vertice] = dCentrality
 
      return max(degreeCentralities.values())
+
+
 
 # ======================= CLOSENESS ======================= #
 
@@ -127,7 +141,7 @@ class Grafo:
     
     for vertice in self.vertices:
           nodeCloseness = self.closenessFinder(vertice)
-          closenesses.append(nodeCloseness)
+          closenesses.append((vertice, nodeCloseness))
 
     return closenesses
 
@@ -211,7 +225,7 @@ class Grafo:
         else:
             closeness = 0
 
-    return closeness
+    return round(closeness, 4)
   
 # ======================= BETWEENNESS ======================= #
 
@@ -265,6 +279,26 @@ class Grafo:
       
       return caminhos
 
+  # def allNodesBet(self):
+  #   # A node is considered central if it is part of most of the shortest paths of all
+  #   # possible pairs of nodes in which it is not at the beginning or end of the path
+  #   centralidade = {vertice: 0 for vertice in self.vertices}
+  #   for verticeInicial in self.vertices:
+  #       caminhos = self.pathFinder(verticeInicial)
+  #       for vertice in self.vertices:
+  #           if vertice != verticeInicial:
+  #               for caminho in caminhos[vertice]:
+  #                   for v in caminho[1:-1]:  # isso aqui não conta o node inicial nem o final
+  #                       centralidade[v] += 1 / len(caminhos[vertice])
+    
+    
+  #   n = len(self.vertices)
+  #   normalizacao = 1 / ((n - 1) * (n - 2))
+  #   for vertice in centralidade:
+  #       centralidade[vertice] *= normalizacao # aplica a normalização para deixar tudo menor que 1
+     
+  #   return centralidade # retorna a centralidade de cada vértice
+  
   def allNodesBet(self):
     # A node is considered central if it is part of most of the shortest paths of all
     # possible pairs of nodes in which it is not at the beginning or end of the path
@@ -274,17 +308,24 @@ class Grafo:
         for vertice in self.vertices:
             if vertice != verticeInicial:
                 for caminho in caminhos[vertice]:
-                    for v in caminho[1:-1]:  # isso aqui não conta o node inicial nem o final
+                    # Isso aqui não conta o nó inicial nem o final
+                    for v in caminho[1:-1]:
                         centralidade[v] += 1 / len(caminhos[vertice])
-    
-    
+
     n = len(self.vertices)
     normalizacao = 1 / ((n - 1) * (n - 2))
-    for vertice in centralidade:
-        centralidade[vertice] *= normalizacao # aplica a normalização para deixar tudo menor que 1
-     
-    return centralidade # retorna a centralidade de cada vértice
-  
+
+    # Convertendo o dicionário de centralidades em uma matriz NumPy
+    centralidade_array = np.array(list(centralidade.values()))
+
+    # Aplica a normalização para deixar tudo menor que 1
+    centralidade_array *= normalizacao
+
+    # Reconstrói o dicionário de centralidades com os índices corretos
+    centralidade = {vertice: centralidade_array[i] for i, vertice in enumerate(centralidade)}
+
+    return centralidade
+
   def highestBet(self):
     # returns the nodes with highest betweenness
     centralidade = {vertice: 0 for vertice in self.vertices}
@@ -304,6 +345,8 @@ class Grafo:
      
  
     return [(vertice) for vertice in centralidade if centralidade[vertice] == max(centralidade.values())]
+
+
   
 # ======================= EDGE BETWEENNESS ======================= #
 
@@ -648,6 +691,12 @@ class Grafo:
           if vertice[0] == vertice2:
             vertice[1] = novoPeso
 
+            # adiciona o peso na aresta inversa se não for direcionado
+            if not self.direcionado:
+               for vertice in self.listaDict[vertice2]:
+                if vertice[0] == vertice1:
+                  vertice[1] = novoPeso
+
       elif self.repr == "matriz":
         indiceVertice1 = self.vertices.index(vertice1)
         indiceVertice2 = self.vertices.index(vertice2)
@@ -696,12 +745,21 @@ class Grafo:
     # para lista de adjacências
     else:
     # Percorre a lista de adjacencias do vertice1
-        if self.verificarAresta(vertice1, vertice2):
-                return "Essa aresta já existe."
+        if self.direcionado:
+          if self.verificarAresta(vertice1, vertice2):
+                  return 
+          else:
+             self.listaDict[vertice1].append([vertice2, peso])
+
+        # não direcionado
         else:
-            self.listaDict[vertice1].append([vertice2, peso])
-            if not self.direcionado:
-                  self.listaDict[vertice2].append([vertice1, peso])
+            
+            if self.verificarAresta(vertice1, vertice2) or self.verificarAresta(vertice2, vertice1):
+                  return False
+            else:
+             
+              self.listaDict[vertice1].append([vertice2, peso])
+              self.listaDict[vertice2].append([vertice1, peso])
 
 
   def pegaVizinhos(self, vertice1):
@@ -718,11 +776,14 @@ class Grafo:
       return vizinhos
 
     else: # lista
-      if vertice1 in self.listaDict:
+      if vertice1 in self.vertices:
             vizinhos = [vizinho for (vizinho, _) in self.listaDict[vertice1]]
             return vizinhos
-      else:
-            return []
+      # else:
+      #       return []
+
+    
+
 
   def recuperarPeso(self, vertice1, vertice2):
     if self.ponderado and self.verificarAresta(vertice1, vertice2):
@@ -1324,7 +1385,7 @@ class Grafo:
           
     # ===== Plotar Grafo ==== #
     
-  def plotarHistograma(self, arq='histograma.png'):
+  def gerarHistograma(self, arq='histograma.png'):
     # Para pegar os dados de grau para criar o histograma:
     graus = [self.degree(x) for x in self.vertices]
     
@@ -1337,6 +1398,7 @@ class Grafo:
 
     # Salvar o gráfico em png
     plt.savefig(arq, format='png')
+    plt.show()
     plt.close()  # Fechar o plot para evitar sobreposição em plots futuros
 
 # ===== Printar o grafo ===== #
