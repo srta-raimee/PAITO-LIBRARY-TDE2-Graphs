@@ -634,7 +634,9 @@ class Grafo:
 
       else:  # para lista de adjacencias
         for vertice in self.listaDict[vertice1]:
-            return vertice[0] == vertice2
+            if vertice[0] == vertice2:
+              return True
+        return False
       
   def atualizarPesoAresta(self, vertice1, vertice2, novoPeso=1):
     # Verifica se a aresta existe e se o grafo é ponderado pra poder adicionar
@@ -1012,10 +1014,8 @@ class Grafo:
       pesoMinimo = +1e10
       for vertice in q:
         if pesosAcumulados[vertice] <= pesoMinimo:
-          print(f"pesosAcumulados[{vertice}]: {pesosAcumulados[vertice]}")
           pesoMinimo = pesosAcumulados[vertice]
           menorCusto = vertice
-          print(f"pesoMinimo: {pesoMinimo}\nmenorCusto: {menorCusto}\n")
       return menorCusto
 
   # ======================= Persistencia (arquivo pajek) ======================= #
@@ -1282,7 +1282,6 @@ class Grafo:
 
         # criando lista de vertices que existem no grafo original
         q = self.vertices[:].copy()
-        print(f"q: {q}")
     
         while len(q) > 0:
             # encontrar o vértice ainda não adicionado
@@ -1293,11 +1292,11 @@ class Grafo:
             q.remove(u)
 
             for vizinho in self.pegaVizinhos(u):
-                peso = self.recuperarPeso(u, vizinho)
-                print(f"u: {u} \nvizinho: {vizinho} \npeso: {peso} \npesos vizinhos: {pesos[vizinho]} \n")
-                if vizinho in q and peso < pesos[vizinho]:
-                    predecessores[vizinho] = u
-                    pesos[vizinho] = peso
+              peso = self.recuperarPeso(u, vizinho)
+              if vizinho in q and peso < pesos[vizinho]:
+                  predecessores[vizinho] = u
+                  pesos[vizinho] = peso
+
         # monta novo grafo com as conexoes e pesos encontrados
         mst = Grafo(repr=self.repr,
                       direcionado=False,
