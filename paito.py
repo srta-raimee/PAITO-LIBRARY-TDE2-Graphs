@@ -675,9 +675,9 @@ class Grafo:
       print("Não é possível adicionar uma aresta com peso 0 ou menos")
       return
     
-    if vertice1 not in self.listaDict:
+    if vertice1 not in self.vertices:
       self.adicionarVertice(vertice1)
-    if vertice2 not in self.listaDict:
+    if vertice2 not in self.vertices:
       self.adicionarVertice(vertice2)
         
       # Para matriz de adjacencias:
