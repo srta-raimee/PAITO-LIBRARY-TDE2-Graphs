@@ -1007,12 +1007,15 @@ class Grafo:
         return None
       
   def min(self, q, pesosAcumulados):
+      # q é uma cópia da lista de vertices
       menorCusto = None
       pesoMinimo = +1e10
       for vertice in q:
         if pesosAcumulados[vertice] <= pesoMinimo:
+          print(f"pesosAcumulados[{vertice}]: {pesosAcumulados[vertice]}")
           pesoMinimo = pesosAcumulados[vertice]
           menorCusto = vertice
+          print(f"pesoMinimo: {pesoMinimo}\nmenorCusto: {menorCusto}\n")
       return menorCusto
 
   # ======================= Persistencia (arquivo pajek) ======================= #
@@ -1268,7 +1271,7 @@ class Grafo:
         raise Exception("A função conexo() funciona apenas para grafos não direcionados")
         
   def prim(self):
-    if self.conexo() and self.ponderado and not self.direcionado:
+    if self.conexo() and self.ponderado:
       
         # lista de vertices e antecessores
         predecessores = {}
@@ -1278,7 +1281,8 @@ class Grafo:
             pesos[vertice] = 1e10
 
         # criando lista de vertices que existem no grafo original
-        q = self.vertices[:]
+        q = self.vertices[:].copy()
+        print(f"q: {q}")
     
         while len(q) > 0:
             # encontrar o vértice ainda não adicionado
