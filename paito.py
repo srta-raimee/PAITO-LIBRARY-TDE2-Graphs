@@ -44,7 +44,21 @@ class Grafo:
       return eccentricities
   
     else:
-      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
+      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.")
+
+  def componentsEccentricity(self, components):
+    # made just to run for each component in a graph :)
+    eccentricities = {}
+
+    for component in components:
+            componentEccentricities = []
+            for vertice in component:
+                nodeEccentricity = self.eccentricityFinder(vertice)
+                componentEccentricities[vertice] =  nodeEccentricity
+            eccentricities.append(componentEccentricities)
+
+    return eccentricities
+
     
   def eccentricityFinder(self, verticeInicial): # it's a BFS, we need it to find the eccentricity of each node!!
     distancias = {}  
