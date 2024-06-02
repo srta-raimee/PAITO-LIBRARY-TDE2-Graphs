@@ -3,6 +3,8 @@ import random
 #Imports de plotagem:
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
+import numpy as np
 
 
 class Grafo:
@@ -25,34 +27,35 @@ class Grafo:
       if self.repr == "lista":
         self.listaDict = {}
 
-# 9) Função que calcula a centralidade de intermediação (Edge Betweenness) de cada aresta do grafo;
-# 10) Detecção de Comunidades usando Girvan-Newman: implemente uma função que, a partir do grafo de
-# entrada, retorne n subgrafos que representam as principais comunidades de acordo com o algoritmo
-# de Girvan-Newman. O número de subgrafos é um valor a ser informado pelo usuário como argumento 
-# (parâmetro) da função
+  # ======================= Geodesic measure ======================= #
 
- # ======================= cálculo de excentricidade ======================= #
-     
+ 
+  
+
+
+ # ======================= eccentricity measure ======================= #
+
   def eccentricity(self):
     # the purpose here is to find what's the maximum distance between one node to all of the others
     # which means we can run BFS starting from every node and return the maximum distance of each
-    # nodesEccentricity = {}
+
     eccentricities = []
     
-    if not self.direcionado and self.conexo() or self.direcionado and self.SCC():
-      for vertice in self.vertices:
+    for vertice in self.vertices:
           nodeEccentricity = self.eccentricityFinder(vertice)
-          eccentricities.append(nodeEccentricity)
+          eccentricities.append((vertice, nodeEccentricity))
 
-      return eccentricities
+    return eccentricities
   
-    else:
-      raise Exception("Não é possível obter a excentricidade de todos os vértices em um grafo não conectado.") 
     
-  def eccentricityFinder(self, verticeInicial): # it's a BFS, we need it to find the eccentricity of each node!!
+  def eccentricityFinder(self, verticeInicial):
     distancias = {}  
     queue = []
     visitados = []
+    
+    # Inicializa a distância de todos os vértices como infinito
+    for vertice in self.vertices:
+        distancias[vertice] = 10e9
     
     if self.repr == "lista":
         queue.append((verticeInicial, 0))  
@@ -66,8 +69,7 @@ class Grafo:
                 for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
                     if vizinho not in visitados:
                         queue.append((vizinho, distancia + 1)) 
-
-
+            
     else:  # para matriz
         queue.append((verticeInicial, 0))  
 
@@ -82,37 +84,63 @@ class Grafo:
                     if adjacente != 0 and self.vertices[indice] not in visitados:
                         queue.append((self.vertices[indice], distancia + 1))
 
-    maiorDistancia = 0
-    for vertice in distancias:
-      if distancias[vertice] > maiorDistancia:
-         maiorDistancia = distancias[vertice]
-
+    # para tratar as distâncias finitas
+    distanciasFinitas = [distancia for distancia in distancias.values() if distancia != 10e9]
+    
+    # calcula excentricidade considerando apenas as distâncias finitas
+    if distanciasFinitas:
+        maiorDistancia = max(distanciasFinitas)
+    else:
+        maiorDistancia = 10e9
+    
+    # se não houver caminho para aquele vértice (infinito), será tratado como 0
     return maiorDistancia
 
- # ======================= cálculo de diâmetro ======================= #
+
+ # ======================= diameter and radius measures ======================= #
 
   def diameter(self): # The diameter of a graph is the maximum eccentricity value observed amongst all nodes
+      if self.direcionado and self.SCC() or not self.direcionado and self.conexo():
+        eccentricities = self.eccentricity()
+        return max(eccentricities)
+      else:
+         raise Exception("O diâmetro de um grafo só pode ser calculado em grafos conectados.")
+  
+  def radius(self): # The radius of a graph is the minimum eccentricity value observed amongst all nodes
+    if self.direcionado and self.SCC() or not self.direcionado and self.conexo():
       eccentricities = self.eccentricity()
-      return max(eccentricities)
-
- # ======================= cálculo de raio ======================= #
-  def radius(self):
-     eccentricities = self.eccentricity()
-     return min(eccentricities)
+      return min(eccentricities) 
+    else:
+         raise Exception("O Raio de um grafo só pode ser calculado em grafos conectados.")
+  
+  
 
  # ======================= centrality measures ======================= #
 
-  def degreeCentrality(self):
+  def allDegreeCentralities(self):
+     # returns all degree centralities in the graph
      # It considers that the most central node is that one with the highest number of connections
      # closer to 1 = most central
      degreeCentralities = {}
      for vertice in self.vertices:
         degree = self.degree(vertice)
         n = len(self.vertices) - 1
-        dCentrality = degree / n 
+        dCentrality = round(degree / n, 4)
+        degreeCentralities[vertice] = dCentrality
+
+     return degreeCentralities
+
+  def highestDegreeCentralities(self):
+     degreeCentralities = {}
+     for vertice in self.vertices:
+        degree = self.degree(vertice)
+        n = len(self.vertices) - 1
+        dCentrality = round(degree / n, 4)
         degreeCentralities[vertice] = dCentrality
 
      return max(degreeCentralities.values())
+
+
 
 # ======================= CLOSENESS ======================= #
 
@@ -124,7 +152,7 @@ class Grafo:
     
     for vertice in self.vertices:
           nodeCloseness = self.closenessFinder(vertice)
-          closenesses.append(nodeCloseness)
+          closenesses.append((vertice, nodeCloseness))
 
     return closenesses
 
@@ -208,20 +236,12 @@ class Grafo:
         else:
             closeness = 0
 
-    return closeness
+    return round(closeness, 4)
   
 # ======================= BETWEENNESS ======================= #
 
-# def bet(self):
-  #    bets = []
-  #    for vertice in self.vertices:
-  #       bets.append(self.shortestPathsFinder(vertice))
-
-  #    return bets 
-
-
-
   def pathFinder(self, verticeInicial):
+      # dijkstra but to find the path between each node from an initial vertex
       predecessores = {}
       distanciaAcumulada = {}
 
@@ -236,7 +256,7 @@ class Grafo:
           q.append(vertice)
 
       while len(q) > 0:
-          verticeAtual = self.minPath(q, distanciaAcumulada)
+          verticeAtual = self.min(q, distanciaAcumulada)
           if verticeAtual is None:
               break
           q.remove(verticeAtual)
@@ -257,27 +277,19 @@ class Grafo:
       return caminhos
 
   def reconstruirCaminhos(self, verticeInicial, vertice, predecessores):
-      if vertice == verticeInicial:
+      if vertice == verticeInicial: # o menor caminho até ele mesmo é o próprio node
           return [[vertice]]
-      if not predecessores[vertice]:
+      if not predecessores[vertice]: # não existe caminho até o node
           return []
       
       caminhos = []
       for predecessor in predecessores[vertice]:
           for caminho in self.reconstruirCaminhos(verticeInicial, predecessor, predecessores):
+              # função recursiva para retornar cada um dos caminhos mais curtos existentes entre os nodes
               caminhos.append(caminho + [vertice])
       
       return caminhos
-
-  def minPath(self, q, distanciaAcumulada):
-    minVertice = None
-    minDistancia = float('inf')
-    for vertice in q:
-        if distanciaAcumulada[vertice] < minDistancia:
-            minDistancia = distanciaAcumulada[vertice]
-            minVertice = vertice
-    return minVertice
-
+  
   def allNodesBet(self):
     # A node is considered central if it is part of most of the shortest paths of all
     # possible pairs of nodes in which it is not at the beginning or end of the path
@@ -287,17 +299,24 @@ class Grafo:
         for vertice in self.vertices:
             if vertice != verticeInicial:
                 for caminho in caminhos[vertice]:
-                    for v in caminho[1:-1]:  # isso aqui não conta o node inicial nem o final
+                    # Isso aqui não conta o nó inicial nem o final
+                    for v in caminho[1:-1]:
                         centralidade[v] += 1 / len(caminhos[vertice])
-    
-    
+
     n = len(self.vertices)
     normalizacao = 1 / ((n - 1) * (n - 2))
-    for vertice in centralidade:
-        centralidade[vertice] *= normalizacao # aplica a normalização para deixar tudo menor que 1
-     
-    return centralidade # retorna a centralidade de cada vértice
-  
+
+    # Convertendo o dicionário de centralidades em uma matriz NumPy
+    centralidade_array = np.array(list(centralidade.values()))
+
+    # Aplica a normalização para deixar tudo menor que 1
+    centralidade_array *= normalizacao
+
+    # Reconstrói o dicionário de centralidades com os índices corretos
+    centralidade = {vertice: centralidade_array[i] for i, vertice in enumerate(centralidade)}
+
+    return centralidade
+
   def highestBet(self):
     # returns the nodes with highest betweenness
     centralidade = {vertice: 0 for vertice in self.vertices}
@@ -317,11 +336,160 @@ class Grafo:
      
  
     return [(vertice) for vertice in centralidade if centralidade[vertice] == max(centralidade.values())]
+
+
   
- # ======================= manipulações básicas e auxiliares do grafo ======================= #
+# ======================= EDGE BETWEENNESS ======================= #
+
+  # def edgeBetweenness(self, s, t):
+  #   # Calculates the betweenness of a given edge s,t
+
+  #   def qtdShortestPaths(verticeInicial, verticeFinal):
+  #       # Retorna quantos caminhos mais curtos existem entre dois vértices
+  #       allPaths = self.pathFinder(verticeInicial)
+  #       qtdShortestPaths = {}
+
+  #       for destination, path in allPaths.items():
+  #           if destination != verticeInicial:
+  #               qtdShortestPaths[destination] = len(path)
+  #           else:
+  #               qtdShortestPaths[destination] = 0
+        
+  #       return qtdShortestPaths[verticeFinal] if verticeFinal in qtdShortestPaths else 0
+
+  #   def shortestPathsEdge(verticeInicial, verticeFinal):
+  #       # Retorna todos os caminhos mais curtos entre dois vértices
+  #       allPaths = self.pathFinder(verticeInicial)
+  #       return allPaths[verticeFinal] if verticeFinal in allPaths else []
+
+  #   edge = (s, t)
+  #   betweenness = 0.0
+
+  #   for u in self.vertices:
+  #       for v in self.vertices:
+  #           if u != v:
+  #               totalPaths = qtdShortestPaths(u, v)
+  #               if totalPaths > 0:
+  #                   pathsThroughE = 0
+  #                   allPaths = shortestPathsEdge(u, v)
+  #                   for path in allPaths:
+  #                       if edge in zip(path, path[1:]):
+  #                           pathsThroughE += 1
+  #                   betweenness += pathsThroughE / totalPaths
+
+  #   return betweenness
+
+  # def allEdgesBet(self):
+  #   # Returns the betweenness of all edges as a dictionary
+  #   allEdgesBet = {}
+  #   for s in self.vertices:
+  #       for t in self.vertices:
+  #           if s != t: # não precisamos de um caminho de um vértice pra ele mesmo
+  #               edgeBet = self.edgeBetweenness(s, t)
+  #               if edgeBet > 0:
+  #                   if not self.direcionado: # adiciona o mesmo valor tanto para s,t quanto para t,s 
+  #                     allEdgesBet[(s, t)] = f"{edgeBet:.3f}"
+  #                     allEdgesBet[(t, s)] = f"{edgeBet:.3f}"
+  #                   else:
+  #                      allEdgesBet[(s, t)] = f"{edgeBet:.3f}"
+    
+  #   return allEdgesBet
+
+  def shortestPathsEdge(verticeInicial, verticeFinal):
+        # Retorna todos os caminhos mais curtos entre dois vértices
+        allPaths = self.pathFinder(verticeInicial)
+        return allPaths.get(verticeFinal, [])
+
+  def edgeBetweenness(self, s, t):
+    # Calculates the betweenness of a given edge s, t
+
+    def qtdShortestPaths(verticeInicial, verticeFinal):
+        # Retorna quantos caminhos mais curtos existem entre dois vértices
+        allPaths = self.pathFinder(verticeInicial)
+        qtdShortestPaths = {destination: len(paths) for destination, paths in allPaths.items() if destination != verticeInicial}
+        return qtdShortestPaths.get(verticeFinal, 0)
+
+
+    edge = (s, t)
+    betweenness = 0.0
+
+    vertices = np.array(self.vertices)
+    for u in vertices:
+        for v in vertices:
+            if u != v:
+                totalPaths = qtdShortestPaths(u, v)
+                if totalPaths > 0:
+                    pathsThroughE = 0
+                    allPaths = self.shortestPathsEdge(u, v)
+                    for path in allPaths:
+                        edges_in_path = list(zip(path, path[1:]))
+                        if edge in edges_in_path:
+                            pathsThroughE += 1
+                    betweenness += pathsThroughE / totalPaths
+
+    return betweenness
+
+  def allEdgesBet(self):
+      # Returns the betweenness of all edges as a dictionary
+      allEdgesBet = {}
+      vertices = np.array(self.vertices)
+      for s in vertices:
+          for t in vertices:
+              if s != t:  # não precisamos de um caminho de um vértice pra ele mesmo
+                  edgeBet = self.edgeBetweenness(s, t)
+                  if edgeBet > 0:
+                      if not self.direcionado:  # adiciona o mesmo valor tanto para s, t quanto para t, s
+                          allEdgesBet[(s, t)] = f"{edgeBet:.3f}"
+                          allEdgesBet[(t, s)] = f"{edgeBet:.3f}"
+                      else:
+                          allEdgesBet[(s, t)] = f"{edgeBet:.3f}"
+
+      return allEdgesBet
+            
+# ======================= EDGE BETWEENNESS ======================= #
+# It's removing the right edges, but the values of edge bet
+  def communityDetection(self, qntComunidades):
+    # separates the graph into comunities by removing the edges with highest btwns and creates a graph for each component
+    components = len(self.extractComponents())
+    allEdgesBet = self.allEdgesBet()
+    grafoComunidades = []  # Lista para armazenar os novos grafos de cada comunidade
+
+    while components < qntComunidades and allEdgesBet:
+        maiorEdgeBet = 0
+        maiorEdge = None
+
+        for edge, bet in allEdgesBet.items():
+            edgeBet = float(bet)
+            if edgeBet > maiorEdgeBet:
+                maiorEdgeBet = edgeBet
+                maiorEdge = edge
+        
+        if maiorEdge:
+            print(maiorEdge)
+            self.removerAresta(maiorEdge[0], maiorEdge[1])
+            components = len(self.extractComponents())
+            allEdgesBet = self.allEdgesBet()
+        else:
+            break
+
+    #  Criando um novo grafo para cada comunidade detectada
+    newComponents = self.extractComponents()
+    for component in newComponents:  
+        novoGrafo = Grafo(repr=self.repr, direcionado=self.direcionado, ponderado=self.ponderado) 
+        for element in component:
+            novoGrafo.adicionarVertice(element)
+            for vizinho in self.pegaVizinhos(element):
+               if vizinho in novoGrafo.vertices:
+                novoGrafo.adicionarAresta(element, vizinho) # recuperar as conexões que existem nos componentes
+        # print(novoGrafo) # para visualizar o grafo
+        grafoComunidades.append(novoGrafo)  # Adiciona o novo grafo à lista de grafos de comunidades
+
+    return grafoComunidades
+
+# ======================= manipulações básicas e auxiliares do grafo ======================= #
 
   def componentsSCC(self): # strongly connected components
-    # "why do we need this thing???" you might be asking. It returns how many SSC we have in the graph. You'll need it, trust me.
+    # "why do we need this thing???" you might be asking. It returns how many SCC we have in the graph. You'll need it, trust me.
     if self.direcionado:
       originalDFS = self.buscaProfundidadeKosaraju()
       grafoTransposto = self.transpor()
@@ -350,6 +518,13 @@ class Grafo:
         components.append(visitados.keys())
 
       return components
+
+  # def subgraphsComponents(self):
+  #    components = self.extractComponents()
+
+  #    for component in components:
+  #     novoGrafo = self.Grafo(repr=repr, direcionado=direcionado, ponderado=ponderado)
+
 
   def buscaProfundidadeKosaraju(self):
       # vertifica os não visitados com um laço for. Se ainda existirem no final, pega um random e reinicia a busca
@@ -479,48 +654,6 @@ class Grafo:
     else:
       print(f"A vertice {vertice} já existe")
 
-  def adicionarAresta(self, vertice1, vertice2, peso=1):
-    # Se o grafo não for ponderado, os pesos sao 1.
-    if not self.ponderado:
-      peso = 1
-
-    # Verifica se os vertices existem no grafo:
-    if self.verificarVertice(vertice1, vertice2):
-        
-      # Para matriz de adjacencias:
-      if self.repr == "matriz":
-        indiceVertice1 = self.vertices.index(vertice1)
-        indiceVertice2 = self.vertices.index(vertice2)
-       
-        self.matrizAdjacencias[indiceVertice1][indiceVertice2] = peso
-
-        # Se o grafo não for direcionado, adicione a aresta inversa
-        if not self.direcionado:
-          self.matrizAdjacencias[indiceVertice2][indiceVertice1] = peso
-
-      # para lista de adjacências
-      else:
-        # Se ja existir a aresta, atualize o peso:
-        existe = False
-        # Percorre a lista de adjacencias do vertice1
-        for arestas in self.listaDict[vertice1]:
-          # Se encontrar, atualiza o peso da aresta:
-          if arestas[0] == vertice2:
-            self.atualizarPesoAresta(vertice1, vertice2, peso)
-            existe = True
-
-            if not self.direcionado:
-              self.atualizarPesoAresta(vertice2, vertice1, peso)
-
-        # Se não existir a aresta, adicione a aresta:
-        if not existe:
-          self.listaDict[vertice1].append([vertice2, peso])
-          if not self.direcionado:
-            self.listaDict[vertice2].append([vertice1, peso])
-  
-    else:
-      print(f"Não foi possivel adicionar a aresta entre {vertice1} e {vertice2}")
-
   def removerVertice(self, vertice):
     if vertice in self.vertices:
 
@@ -547,7 +680,7 @@ class Grafo:
           del linha[indiceVertice]
 
     else:
-      print("Vértice não encontrado no grafo.")
+      print(f"Vértice '{vertice}' não encontrado no grafo.")
 
   def removerAresta(self, vertice1, vertice2):
     if self.verificarVertice(vertice1, vertice2):
@@ -589,29 +722,29 @@ class Grafo:
             indiceVertice2] and self.matrizAdjacencias[indiceVertice2][
                 indiceVertice1]:
           return True
-
-        else:
-          return False
+        return False
 
       else:  # para lista de adjacencias
         for vertice in self.listaDict[vertice1]:
-          if vertice[0] == vertice2:
-            return True
+            if vertice[0] == vertice2:
+              return True
         return False
-
-  def atualizarPesoAresta(self, vertice1, vertice2, novoPeso):
+      
+  def atualizarPesoAresta(self, vertice1, vertice2, novoPeso=1):
     # Verifica se a aresta existe e se o grafo é ponderado pra poder adicionar
-    if not self.verificarAresta(vertice1, vertice2):
-      if self.ponderado:
-        self.adicionarAresta(vertice1, vertice2, novoPeso)
-      else:
-        self.adicionarAresta(vertice1, vertice2)
 
-    else:  # se a aresta existe, atualiza o peso
+    verificar = self.verificarAresta(vertice1, vertice2)
+    if verificar:  # se a aresta existe, atualiza o peso
       if self.repr == "lista":
         for vertice in self.listaDict[vertice1]:
           if vertice[0] == vertice2:
             vertice[1] = novoPeso
+
+            # adiciona o peso na aresta inversa se não for direcionado
+            if not self.direcionado:
+               for vertice in self.listaDict[vertice2]:
+                if vertice[0] == vertice1:
+                  vertice[1] = novoPeso
 
       elif self.repr == "matriz":
         indiceVertice1 = self.vertices.index(vertice1)
@@ -624,6 +757,59 @@ class Grafo:
 
           else:
             self.matrizAdjacencias[indiceVertice1][indiceVertice2] = novoPeso
+
+    else:
+      if self.ponderado:
+        self.adicionarAresta(vertice1, vertice2, novoPeso)
+
+      else:
+        self.adicionarAresta(vertice1, vertice2)
+
+
+  def adicionarAresta(self, vertice1, vertice2, peso=1):
+    # Se o grafo não for ponderado, os pesos sao 1 (mesmo se passar um valor).
+    if not self.ponderado:
+      peso = 1
+
+    if peso <= 0:
+      print("Não é possível adicionar uma aresta com peso 0 ou menos")
+      return
+    
+    if vertice1 not in self.vertices:
+      self.adicionarVertice(vertice1)
+    if vertice2 not in self.vertices:
+      self.adicionarVertice(vertice2)
+        
+      # Para matriz de adjacencias:
+    if self.repr == "matriz":
+        indiceVertice1 = self.vertices.index(vertice1)
+        indiceVertice2 = self.vertices.index(vertice2)
+        
+        self.matrizAdjacencias[indiceVertice1][indiceVertice2] = peso
+
+        # Se o grafo não for direcionado, adicione a aresta inversa
+        if not self.direcionado:
+            self.matrizAdjacencias[indiceVertice2][indiceVertice1] = peso
+
+    # para lista de adjacências
+    else:
+    # Percorre a lista de adjacencias do vertice1
+        if self.direcionado:
+          if self.verificarAresta(vertice1, vertice2):
+                  return 
+          else:
+             self.listaDict[vertice1].append([vertice2, peso])
+
+        # não direcionado
+        else:
+            
+            if self.verificarAresta(vertice1, vertice2) or self.verificarAresta(vertice2, vertice1):
+                  return False
+            else:
+             
+              self.listaDict[vertice1].append([vertice2, peso])
+              self.listaDict[vertice2].append([vertice1, peso])
+
 
   def pegaVizinhos(self, vertice1):
     if self.repr == "matriz":
@@ -639,11 +825,14 @@ class Grafo:
       return vizinhos
 
     else: # lista
-      if vertice1 in self.listaDict:
+      if vertice1 in self.vertices:
             vizinhos = [vizinho for (vizinho, _) in self.listaDict[vertice1]]
             return vizinhos
       else:
             return []
+
+    
+
 
   def recuperarPeso(self, vertice1, vertice2):
     if self.ponderado and self.verificarAresta(vertice1, vertice2):
@@ -789,7 +978,6 @@ class Grafo:
         tempo = fim - inicio
         visitas[verticeAtual] = (f"{tempo:.7f}")
         
-      return visitas
 
     else:  # para matriz
       inicio = time()
@@ -820,7 +1008,7 @@ class Grafo:
         fim = time()
         tempo = fim - inicio
         visitas[verticeAtual] = (f"{tempo:.7f}")
-      return visitas
+    return visitas
 
   def buscaProfundidade(self, verticeInicial):
     inicio = time()
@@ -931,6 +1119,7 @@ class Grafo:
         return None
       
   def min(self, q, pesosAcumulados):
+      # q é uma cópia da lista de vertices
       menorCusto = None
       pesoMinimo = +1e10
       for vertice in q:
@@ -1046,8 +1235,8 @@ class Grafo:
 
             file.write(f"{aresta}\n")
 
-  # So pra deixar o carregarPajek mais limpo
   def clean(self, texto, retirar):
+     # So pra deixar o carregarPajek mais limpo
     return texto.replace(retirar, "").replace("\n", "")
 
   def carregarPajek(self, arquivoPajek):
@@ -1192,72 +1381,76 @@ class Grafo:
         raise Exception("A função conexo() funciona apenas para grafos não direcionados")
         
   def prim(self):
+    if self.conexo() and self.ponderado:
+      
+        # lista de vertices e antecessores
+        predecessores = {}
+        pesos = {}
+        for vertice in self.vertices:
+            predecessores[vertice] = None
+            pesos[vertice] = 1e10
 
-        if self.conexo() and self.ponderado and not self.direcionado:
-          
-            # lista de vertices e antecessores
-            predecessores = {}
-            pesos = {}
-            for vertice in self.vertices:
-                predecessores[vertice] = None
-                pesos[vertice] = 1e10
+        # criando lista de vertices que existem no grafo original
+        q = self.vertices[:].copy()
     
-            # criando lista de vertices que existem no grafo original
-            q = self.vertices[:]
-        
-            while len(q) > 0:
-                # encontrar o vértice ainda não adicionado
-                # que tenha o menor peso
-                u = self.min(q, pesos)
+        while len(q) > 0:
+            # encontrar o vértice ainda não adicionado
+            # que tenha o menor peso
+            u = self.min(q, pesos)
+
+            # remover esse vertice da lista
+            q.remove(u)
+
+            for vizinho in self.pegaVizinhos(u):
+              peso = self.recuperarPeso(u, vizinho)
+              if vizinho in q and peso < pesos[vizinho]:
+                  predecessores[vizinho] = u
+                  pesos[vizinho] = peso
+
+        # monta novo grafo com as conexoes e pesos encontrados
+        mst = Grafo(repr=self.repr,
+                      direcionado=False,
+                      ponderado=True)
+        # copiar vertices originais
+        for vertice in self.vertices:
+          mst.adicionarVertice(vertice)
+
+        # adiciona as arestas
+        custoAcumulado = 0
+        for verticeInicial in predecessores.keys():
+            verticeFinal = predecessores[verticeInicial]
+            if verticeFinal is not None:
+              mst.adicionarAresta(verticeInicial,
+                                  verticeFinal,
+                                  pesos[verticeInicial])
+              custoAcumulado += pesos[verticeInicial]
+
+        #retorna a MST
+        return mst, custoAcumulado
     
-                # remover esse vertice da lista
-                q.remove(u)
-    
-                for vizinho in self.pegaVizinhos(u):
-                    peso = self.recuperarPeso(u, vizinho)
-                    if vizinho in q and peso < pesos[vizinho]:
-                        predecessores[vizinho] = u
-                        pesos[vizinho] = peso
-            # monta novo grafo com as conexoes e pesos encontrados
-            mst = Grafo(repr=self.repr,
-                          direcionado=False,
-                          ponderado=True)
-            # copiar vertices originais
-            for vertice in self.vertices:
-              mst.adicionarVertice(vertice)
-    
-            # adiciona as arestas
-            custoAcumulado = 0
-            for verticeInicial in predecessores.keys():
-                verticeFinal = predecessores[verticeInicial]
-                if verticeFinal is not None:
-                  mst.adicionarAresta(verticeInicial,
-                                      verticeFinal,
-                                      pesos[verticeInicial])
-                  custoAcumulado += pesos[verticeInicial]
-    
-            #retorna a MST
-            return mst, custoAcumulado
-        
-        else:
-          return None
+    else:
+      return None
 
           
     # ===== Plotar Grafo ==== #
     
-  def plotarHistograma(self, arq='plotHistograma.png'):
-      # Para pegar os dados de grau prar criar o histograma:
-      graus = [self.degree(x) for x in self.vertices]
-      sns.countplot(x=graus)
-
-      # Definindo as informações do plot:
-      plt.gca().set_facecolor('pink')
-
-      # Salvar o gráfico em png
-      plt.savefig(arq, format='png', facecolor=plt.gca().get_facecolor())
+  def gerarHistograma(self, arq='histograma.png'):
+    # Para pegar os dados de grau para criar o histograma:
+    graus = [self.degree(x) for x in self.vertices]
     
+    # Definindo a paleta de cores personalizada
+    colors = ["#ffb3d9", "#ff80bf", "#ff4da6", "#ff1a8c", "#e60073", "#b30059", "#800040", "#4d0026"]
 
-    # ===== Printar o grafo ===== #
+    # isso aqui apenas a paleta de cores rosa
+    df = pd.DataFrame({'graus': graus})
+    sns.countplot(data=df, x='graus', palette=colors, hue='graus', dodge=False, legend=False)
+
+    # Salvar o gráfico em png
+    plt.savefig(arq, format='png')
+    plt.show()
+    plt.close()  # Fechar o plot para evitar sobreposição em plots futuros
+
+# ===== Printar o grafo ===== #
   
   def __str__(self):
 
@@ -1273,14 +1466,18 @@ class Grafo:
       # Uma string da lista de vertices pra ficar mais bonito (e reutiliza-la depois)
       toString += "Vertices: "
 
-      listaVertices = "["
-      for vertice in self.vertices:
-        listaVertices += f"{vertice}, "
-      listaVertices = listaVertices[:-2] + "]"
+      if len(self.vertices) == 0:
+        listaVertices = ""
+
+      else:
+        listaVertices = "["
+        for vertice in self.vertices:
+          listaVertices += f"{vertice}, "
+        listaVertices = listaVertices[:-2] + "]"
 
       toString += f"{listaVertices} \n"
 
-      # Printagem da lista (se for lista): (ainda em fase de teste)
+      # Printagem da lista (se for lista):
       if self.repr == "lista":
         toString += "Lista de adjacências:\n"
         for vertice in self.listaDict:

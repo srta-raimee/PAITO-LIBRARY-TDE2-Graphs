@@ -1,73 +1,31 @@
 
 import pandas as pd
 import paito
+import ast
 
 dados = pd.read_csv("tabela.csv")
 
-paito = paito.Grafo(repr="lista", direcionado=True, ponderado=False)
+paito = paito.Grafo(repr="lista", direcionado=False, ponderado=False)
 
 paito.adicionarVertice("A")
 paito.adicionarVertice("B")
 paito.adicionarVertice("C")
 paito.adicionarVertice("D")
 paito.adicionarVertice("E")
-# paito.adicionarVertice("F")
-# paito.adicionarVertice("G")
+paito.adicionarVertice("F")
+paito.adicionarVertice("G")
 # paito.adicionarVertice("H")
 
 
-# paito.adicionarAresta('A', 'C')
-# paito.adicionarAresta('A', 'D')
-# paito.adicionarAresta('A', 'F')
-# paito.adicionarAresta('B', 'E')
-# paito.adicionarAresta('B', 'F')
-# paito.adicionarAresta('C', 'E')
-# paito.adicionarAresta('C', 'D')
-# paito.adicionarAresta('C', 'G')
-# paito.adicionarAresta('E', 'F')
-
-#Exemplo do prof pra eu me basear:
-paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('A', 'E')
-paito.adicionarAresta('B', 'C')
-paito.adicionarAresta('B', 'D')
-paito.adicionarAresta('C', 'D')
+paito.adicionarAresta('A', 'C')
+paito.adicionarAresta('A', 'D')
+paito.adicionarAresta('A', 'F')
+paito.adicionarAresta('B', 'E')
+paito.adicionarAresta('B', 'F')
 paito.adicionarAresta('C', 'E')
-paito.adicionarAresta('D', 'E')
-paito.adicionarAresta('E', 'C')
+paito.adicionarAresta('C', 'G')
+paito.adicionarAresta('C', 'D')
+paito.adicionarAresta('E', 'F')
 
 
-# paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('B', 'C')
-# paito.adicionarAresta('B', 'E')
-# paito.adicionarAresta('B', 'F')
-# # paito.adicionarAresta('C', 'G') 
-# paito.adicionarAresta('C', 'D')
-# paito.adicionarAresta('D', 'C')
-# # paito.adicionarAresta('D', 'H')
-# paito.adicionarAresta('E', 'A')
-# paito.adicionarAresta('E', 'F')
-# paito.adicionarAresta('F', 'G')
-# paito.adicionarAresta('G', 'F')
-# paito.adicionarAresta('G', 'H')
-
-
-# paito.adicionarAresta('A', 'B')
-# paito.adicionarAresta('B', 'C')
-# paito.adicionarAresta('C', 'A')
-# paito.adicionarAr esta('C', 'D')
-# paito.adicionarAresta('D', 'E')
-# paito.adicionarAresta('E', 'F')
-# paito.adicionarAresta('F', 'D')
-# print(paito)
-
-print(paito)
-
-todosCaminhos = paito.allPathsFinder()
-for i in todosCaminhos:
-    print(f"{i}: {todosCaminhos[i]}")
-
-print(paito.betweenness('C'))
-
-# print(paito.allNodesBet())
-# print(paito.highestBet())
+print(paito.averageGeodesicDistance())
