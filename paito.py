@@ -29,37 +29,61 @@ class Grafo:
 
   # ======================= Geodesic measure ======================= #
 
+  # def geodesic(self):
+  #   ''' The average geodesic distance is the relation between the sum of the minimum
+  #   paths of all possible pairs of nodes and the maximum number of possible edges '''
+  #   somas = []
+  #   for u in range(len(self.vertices)-1):
+  #     for v in range(u+1, len(self.vertices)):
+  #         #-1 pq não contabiliza o primeiro vertice
+  #       if not self.direcionado:
+  #           somas.append( len(self.shortestPathsEdge(self.vertices[u], self.vertices[v])[0]) - 1)
+        
+  #       else:
+  #         #-1 pq não contabiliza o primeiro vertice
+  #         distanceUv = self.shortestPathsEdge(self.vertices[u], self.vertices[v])
+  #         distanceVu = self.shortestPathsEdge(self.vertices[v], self.vertices[v])
+  #         somas.append( len(distanceUv[0]) - 1 if distanceUv else 0)
+  #         somas.append( len(distanceVu[0]) - 1 if distanceVu else 0)
+
+  #   avg = sum(somas) / (len(self.vertices) * (len(self.vertices)-1)) 
+  #   return avg if self.direcionado else 2 * avg 
+  
   def geodesic(self):
     ''' The average geodesic distance is the relation between the sum of the minimum
     paths of all possible pairs of nodes and the maximum number of possible edges '''
     somas = []
     for u in range(len(self.vertices)-1):
-      for v in range(u+1, len(self.vertices)):
-          #-1 pq não contabiliza o primeiro vertice
-        if not self.direcionado:
-            somas.append( len(self.shortestPathsEdge(self.vertices[u], self.vertices[v])[0]) - 1)
-        
-        else:
-          #-1 pq não contabiliza o primeiro vertice
-          distanceUv = self.shortestPathsEdge(self.vertices[u], self.vertices[v])
-          distanceVu = self.shortestPathsEdge(self.vertices[v], self.vertices[v])
-          somas.append( len(distanceUv[0]) - 1 if distanceUv else 0)
-          somas.append( len(distanceVu[0]) - 1 if distanceVu else 0)
+        for v in range(u+1, len(self.vertices)):
+            if not self.direcionado:
+                path = self.shortestPathsEdge(self.vertices[u], self.vertices[v])
+                if path:  # Verifica se o caminho não é vazio
+                    somas.append(len(path[0]) - 1)
+            else:
+                distanceUv = self.shortestPathsEdge(self.vertices[u], self.vertices[v])
+                distanceVu = self.shortestPathsEdge(self.vertices[v], self.vertices[u])
+                if distanceUv:  # Verifica se o caminho não é vazio
+                    somas.append(len(distanceUv[0]) - 1)
+                else:
+                    somas.append(0)
+                if distanceVu:  # Verifica se o caminho não é vazio
+                    somas.append(len(distanceVu[0]) - 1)
+                else:
+                    somas.append(0)
 
     avg = sum(somas) / (len(self.vertices) * (len(self.vertices)-1)) 
     return avg if self.direcionado else 2 * avg 
-          
+  
 
-  #TODO: FIX THIS BUDEGA HERE 
   def grafoComponent(self, component):
-      novoGrafo = Grafo(repr=self.repr, direcionado=self.direcionado, ponderado=self.ponderado) 
-      for element in component:
-            novoGrafo.adicionarVertice(element)
-            for vizinho in self.pegaVizinhos(element):
-              novoGrafo.adicionarVertice(vizinho) 
-              novoGrafo.adicionarAresta(element, vizinho) # recuperar as conexões que existem nos componentes
-        # print(novoGrafo) # para visualizar o grafo
-      return novoGrafo
+    novoGrafo = Grafo(repr=self.repr, direcionado=self.direcionado, ponderado=self.ponderado) 
+    for element in component:
+      if element not in novoGrafo.vertices:
+        novoGrafo.adicionarVertice(element)
+      for vizinho in self.pegaVizinhos(element):
+        # novoGrafo.adicionarVertice(vizinho) 
+        novoGrafo.adicionarAresta(element, vizinho) # recuperar as conexões que existem nos componentes
+    return novoGrafo
  # ======================= eccentricity measure ======================= #
      
   def eccentricity(self):
@@ -162,7 +186,7 @@ class Grafo:
 
 # ======================= CLOSENESS ======================= #
 
-  def closeness(self): # DEFINETELY WORKING
+  def closeness(self):
     ''' The purpose of Closeness is to find how close a node is from the others. As much closer it is to 1,
     more important the node is 'cause of its potential to spread informations faster :) '''
   
@@ -207,13 +231,13 @@ class Grafo:
                       if adjacente != 0 and self.vertices[indice] not in visitados:
                           queue.append((self.vertices[indice], distancia + 1))
 
-        somaDistancias = sum(distancias.values())
-        qntVertices = len(self.vertices)
-        
-        if somaDistancias > 0:
-            closeness = (qntVertices - 1) / somaDistancias
-        else:
-            closeness = 0
+      somaDistancias = sum(distancias.values())
+      qntVertices = len(self.vertices)
+      
+      if somaDistancias > 0:
+          closeness = (qntVertices - 1) / somaDistancias
+      else:
+          closeness = 0
         
 
     else: # directed graphs
@@ -356,15 +380,15 @@ class Grafo:
 # ======================= EDGE BETWEENNESS ======================= #
 # ARRUMAR PARA O CENARIO REAL WORLD
   def qtdShortestPaths(self, verticeInicial, verticeFinal):
-      ''' Returns how many possible shortest paths an edge has '''
-      allPaths = self.pathFinder(verticeInicial)
-      qtdShortestPaths = {destination: len(paths) for destination, paths in allPaths.items() if destination != verticeInicial}
-      return qtdShortestPaths.get(verticeFinal, 0)
+    ''' Returns how many possible shortest paths an edge has '''
+    allPaths = self.pathFinder(verticeInicial)
+    qtdShortestPaths = {destination: len(paths) for destination, paths in allPaths.items() if destination != verticeInicial}
+    return qtdShortestPaths.get(verticeFinal, 0)
 
   def shortestPathsEdge(self, verticeInicial, verticeFinal):
-      ''' Returns all of the shortest paths an edge has '''
-      allPaths = self.pathFinder(verticeInicial)
-      return allPaths.get(verticeFinal, [])
+    ''' Returns all of the shortest paths an edge has '''
+    allPaths = self.pathFinder(verticeInicial)
+    return allPaths.get(verticeFinal, [])
 
   # def edgeBetweenness(self, s, t):
   #   # Calculates the betweenness of a given edge s, t
@@ -397,7 +421,7 @@ class Grafo:
                 totalPaths = self.qtdShortestPaths(u, v)
                 if totalPaths > 0:
                     pathsThroughE = 0
-                    allPaths = shortestPathsEdge(u, v)
+                    allPaths = self.shortestPathsEdge(u, v)
                     for path in allPaths:
                         if edge in zip(path, path[1:]):
                             pathsThroughE += 1
@@ -454,7 +478,7 @@ class Grafo:
             for vizinho in self.pegaVizinhos(element):
                if vizinho in novoGrafo.vertices:
                 novoGrafo.adicionarAresta(element, vizinho) # recuperar as conexões que existem nos componentes
-        # print(novoGrafo) # para visualizar o grafo
+        print(novoGrafo) # para visualizar o grafo
         grafoComunidades.append(novoGrafo)  # Adiciona o novo grafo à lista de grafos de comunidades
 
     return grafoComunidades
