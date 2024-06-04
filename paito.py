@@ -1004,6 +1004,64 @@ class Grafo:
         visitas[verticeAtual] = (f"{tempo:.7f}")
     return visitas
 
+  def buscaLarguraComFinal(self, verticeInicial, verticeFinal):
+    inicio = time()
+    if self.repr == "lista":
+      visitas = {}
+      queue = []
+      visitados = []
+      queue.append(verticeInicial)
+
+      while queue:
+        
+        verticeAtual = queue.pop(0)
+
+        if verticeAtual not in visitados:
+          visitados.append(verticeAtual)
+
+        for vizinho in sorted(self.pegaVizinhos(verticeAtual)):
+          if vizinho not in visitados:
+            queue.append(vizinho)
+
+        # if verticeAtual == verticeFinal:
+        #   break
+
+        fim = time()
+        tempo = fim - inicio
+        visitas[verticeAtual] = (f"{tempo:.7f}")
+        
+
+    else:  # para matriz
+      inicio = time()
+      queue = []
+      visitados = []
+      visitas = {}
+      queue.append(verticeInicial)
+
+      # indiceVerticeInicial = self.vertices.index(verticeInicial)
+
+      while queue:
+        
+        verticeAtual = queue.pop(0)
+        indiceVerticeAtual = self.vertices.index(verticeAtual)
+
+        if verticeAtual not in visitados:
+          visitados.append(verticeAtual)
+
+          for indice, adjacente in enumerate(
+              self.matrizAdjacencias[indiceVerticeAtual]):
+
+            if adjacente != 0 and self.vertices[indice] not in visitados:
+              queue.append(self.vertices[indice])
+
+        if verticeAtual == verticeFinal:
+           break
+
+        fim = time()
+        tempo = fim - inicio
+        visitas[verticeAtual] = (f"{tempo:.7f}")
+    return visitas
+  
   def buscaProfundidade(self, verticeInicial):
     inicio = time()
     visitas = {}
@@ -1033,6 +1091,42 @@ class Grafo:
               
       # if verticeAtual == verticeFinal:
       #   break
+      fim = time()
+      tempo = fim - inicio
+      visitas[verticeAtual] = (f"{tempo:.7f}")
+      
+    return visitas
+  
+  def buscaProfundidadeComFinal(self, verticeInicial, verticeFinal):
+    inicio = time()
+    visitas = {}
+    stack = []
+    visitados = {}
+    stack.append(verticeInicial)
+
+    while stack:
+      
+      verticeAtual = stack.pop()
+
+      if verticeAtual not in visitados:
+        visitados[verticeAtual] = True
+
+        if self.repr == "matriz":
+          indiceVerticeAtual = self.vertices.index(verticeAtual)
+          for indice, adjacente in enumerate(
+              self.matrizAdjacencias[indiceVerticeAtual]):
+
+            if adjacente != 0 and self.vertices[indice] not in visitados:
+              stack.append(self.vertices[indice])
+
+        else:  # para lista
+          for vizinho, _ in self.listaDict.get(verticeAtual, []):
+            if vizinho not in visitados:
+              stack.append(vizinho)
+              
+      if verticeAtual == verticeFinal:
+        break
+      
       fim = time()
       tempo = fim - inicio
       visitas[verticeAtual] = (f"{tempo:.7f}")
