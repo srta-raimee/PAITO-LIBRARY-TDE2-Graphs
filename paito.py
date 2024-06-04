@@ -29,25 +29,6 @@ class Grafo:
 
   # ======================= Geodesic measure ======================= #
 
-  # def geodesic(self):
-  #   ''' The average geodesic distance is the relation between the sum of the minimum
-  #   paths of all possible pairs of nodes and the maximum number of possible edges '''
-  #   somas = []
-  #   for u in range(len(self.vertices)-1):
-  #     for v in range(u+1, len(self.vertices)):
-  #         #-1 pq não contabiliza o primeiro vertice
-  #       if not self.direcionado:
-  #           somas.append( len(self.shortestPathsEdge(self.vertices[u], self.vertices[v])[0]) - 1)
-        
-  #       else:
-  #         #-1 pq não contabiliza o primeiro vertice
-  #         distanceUv = self.shortestPathsEdge(self.vertices[u], self.vertices[v])
-  #         distanceVu = self.shortestPathsEdge(self.vertices[v], self.vertices[v])
-  #         somas.append( len(distanceUv[0]) - 1 if distanceUv else 0)
-  #         somas.append( len(distanceVu[0]) - 1 if distanceVu else 0)
-
-  #   avg = sum(somas) / (len(self.vertices) * (len(self.vertices)-1)) 
-  #   return avg if self.direcionado else 2 * avg 
   
   def geodesic(self):
     ''' The average geodesic distance is the relation between the sum of the minimum
@@ -73,7 +54,6 @@ class Grafo:
 
     avg = sum(somas) / (len(self.vertices) * (len(self.vertices)-1)) 
     return avg if self.direcionado else 2 * avg 
-  
 
   def grafoComponent(self, component):
     novoGrafo = Grafo(repr=self.repr, direcionado=self.direcionado, ponderado=self.ponderado) 
@@ -444,7 +424,7 @@ class Grafo:
     
     return allEdgesBet
            
-# ======================= EDGE BETWEENNESS ======================= #
+# ======================= Community detection and components ======================= #
   def communityDetection(self, qntComunidades):
     ''' separates the graph into comunities by removing the edges with highest btwns and creates a graph for each component '''
     components = len(self.extractComponents())
@@ -482,8 +462,6 @@ class Grafo:
         grafoComunidades.append(novoGrafo)  # Adiciona o novo grafo à lista de grafos de comunidades
 
     return grafoComunidades
-
-# ======================= manipulações básicas e auxiliares do grafo ======================= #
 
   def componentsSCC(self): 
     ''' "why do we need this thing???" you might be asking. It returns how many SCC we have in the graph. we'll need it, trust me.'''
@@ -627,6 +605,11 @@ class Grafo:
 
     # return [(v, visited_finished[v]) for v in verticesOrdenados]
     return components
+
+
+# TDE 1 - Graph Lib 1st phase
+
+# ======================= manipulações básicas e auxiliares do grafo ======================= #
 
   def adicionarVertice(self, vertice):
     ''' adds nodes to our graph, both directed and undirected '''
@@ -1227,58 +1210,13 @@ class Grafo:
       return menorCusto
 
   # ======================= Persistencia (arquivo pajek) ======================= #
-
-  def salvarPajek(self, arquivoPajek):
-      
-      with open(arquivoPajek, "w") as file:
-        # ---- Armazenamento dos Dados:
-        file.write(f"% representation={self.repr}\n")
-        file.write(f"% directed={self.direcionado}\n")
-        file.write(f"% weighted={self.ponderado}\n")
-
-        # ---- Armazenamento de Vertices:
-        file.write(f"*Vertices {len(self.vertices)}\n")
-
-        for i in range(len(self.vertices)):
-          file.write(f"{i} {self.vertices[i]}\n")
-
-        # ---- Armazenamento de Arestas:
-        if self.repr == "matriz":
-          file.write("*arcs\n")
-          # Pra cada vertice
-          for i in range(len(self.matrizAdjacencias)):
-            for j in range(len(self.matrizAdjacencias[i])):
-
-              # Verifica se existe a aresta entre os vertices 'i' e 'j':
-              if self.matrizAdjacencias[i][j] != 0:
-                # Escreve o index do vertice de origem, de destino e por ultimo peso (se tiver)
-                aresta = f"{i} {j}"
-
-                if self.ponderado:
-                  aresta += f" {self.matrizAdjacencias[i][j]}"
-
-                file.write(f"{aresta}\n")
-
-        else:  #self.repr == "lista":
-          file.write("*edge\n")
-          # Pra cada vertice de origem
-          for vertice in self.listaDict:
-            # Pra cada vertice ligado ao de origem
-            for arestas in self.listaDict[vertice]:
-              # Escreve o index do vertice de origem, de destino e por ultimo peso (se tiver)
-              aresta = f"{vertice} {arestas[0]}"
-
-              if self.ponderado:
-                aresta += f" {arestas[1]}"
-
-              file.write(f"{aresta}\n")
-
-    # So pra deixar o carregarPajek mais limpo
   
   def clean(self, texto, retirar):
+      ''' Limpa o arquivo '''
       return texto.replace(retirar, "").replace("\n", "")
     
   def carregarPajek(self, arquivoPajek):
+      ''' Carrega o arquivo pajek com o grafo '''
       with open(arquivoPajek, "r") as file:
         #  ---- Dados do Grafo:
         representacao = file.readline()
@@ -1290,6 +1228,7 @@ class Grafo:
         self.ponderado = bool(self.clean(ponderacao, "% weighted="))
   
   def salvarPajek(self, arquivoPajek):
+    ''' Salva o grafo em um arquivo pajek'''
     with open(arquivoPajek, "w") as file:
       # ---- Armazenamento dos Dados:
       file.write(f"% representation={self.repr}\n")
@@ -1333,70 +1272,7 @@ class Grafo:
 
             file.write(f"{aresta}\n")
 
-  def carregarPajek(self, arquivoPajek):
-    with open(arquivoPajek, "r") as file:
-      #  ---- Dados do Grafo:
-      representacao = file.readline()
-      direcionamento = file.readline()
-      ponderacao = file.readline()
-
-      self.repr = self.clean(representacao, "% representation=")
-      self.direcionado = bool(self.clean(direcionamento, "% directed="))
-      self.ponderado = bool(self.clean(ponderacao, "% weighted="))
-
-      if self.repr == "matriz":
-        self.criarMatrizAdjacencias()
-
-      else:  # self.repr == "lista":
-        self.listaDict = {}
-
-      #  ---- Vertices
-      # No arquivo pajek, a lista de vertice esta salva como:
-      # *Vertices n
-      # Entao criamos um 'for i' que percorra esse "n"
-      n = int(self.clean(file.readline(), "*Vertices "))
-      for i in range(n):
-        vertice = file.readline().replace("\n", "").split(" ")
-        self.adicionarVertice(vertice[1])
-
-      #  ---- Arestas
-      file.readline()  # Retira o *arcs / *edge
-
-      if self.repr == "matriz":
-
-        linha = file.readline()
-        while linha != "":
-          aresta = linha.replace("\n", "").split(" ")
-          ver1 = self.vertices[int(aresta[0])]
-          ver2 = self.vertices[int(aresta[1])]
-
-          # Se a linha tiver peso, adiciona o peso:
-          if self.ponderado:
-            peso = int(aresta[2])
-            self.adicionarAresta(ver1, ver2, peso)
-
-          # Se nao, adiciona a aresta com 1 de "peso":
-          else:
-            self.adicionarAresta(ver1, ver2)
-
-          linha = file.readline()
-
-      else:  # self.repr == "lista":
-
-        aresta = []
-        linha = file.readline()
-        while linha != "":
-          aresta = file.readline().replace("\n", "").split(" ")
-
-          # Se a linha tiver peso (3° parametro), adiciona o peso:
-          if self.ponderado:
-            self.listaDict[aresta[0]].append((aresta[1], int(aresta[2])))
-
-          else:
-            self.listaDict[aresta[0]].append(aresta[1], 1)
-
-          linha = file.readline()
-       
+  
 
     # ======================= Funções de representação ======================= #
 
