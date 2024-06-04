@@ -1023,13 +1023,14 @@ class Grafo:
           if vizinho not in visitados:
             queue.append(vizinho)
 
-        # if verticeAtual == verticeFinal:
-        #   break
-
+      
         fim = time()
         tempo = fim - inicio
         visitas[verticeAtual] = (f"{tempo:.7f}")
-        
+
+        if verticeAtual == verticeFinal:
+          break
+
 
     else:  # para matriz
       inicio = time()
@@ -1054,12 +1055,13 @@ class Grafo:
             if adjacente != 0 and self.vertices[indice] not in visitados:
               queue.append(self.vertices[indice])
 
-        if verticeAtual == verticeFinal:
-           break
 
-        fim = time()
-        tempo = fim - inicio
-        visitas[verticeAtual] = (f"{tempo:.7f}")
+          fim = time()
+          tempo = fim - inicio
+          visitas[verticeAtual] = (f"{tempo:.7f}")
+
+          if verticeAtual == verticeFinal:
+            break
     return visitas
   
   def buscaProfundidade(self, verticeInicial):
@@ -1098,6 +1100,7 @@ class Grafo:
     return visitas
   
   def buscaProfundidadeComFinal(self, verticeInicial, verticeFinal):
+    # TODO: ARRUMAR PARA MATRIZ
     inicio = time()
     visitas = {}
     stack = []
@@ -1119,17 +1122,24 @@ class Grafo:
             if adjacente != 0 and self.vertices[indice] not in visitados:
               stack.append(self.vertices[indice])
 
+          fim = time()
+          tempo = fim - inicio
+          visitas[verticeAtual] = (f"{tempo:.7f}")
+
+          if verticeAtual == verticeFinal:
+            break
+
         else:  # para lista
           for vizinho, _ in self.listaDict.get(verticeAtual, []):
             if vizinho not in visitados:
               stack.append(vizinho)
-              
-      if verticeAtual == verticeFinal:
-        break
-      
-      fim = time()
-      tempo = fim - inicio
-      visitas[verticeAtual] = (f"{tempo:.7f}")
+          
+          fim = time()
+          tempo = fim - inicio
+          visitas[verticeAtual] = (f"{tempo:.7f}")
+
+          if verticeAtual == verticeFinal:
+            break
       
     return visitas
 
@@ -1322,10 +1332,6 @@ class Grafo:
               aresta += f" {arestas[1]}"
 
             file.write(f"{aresta}\n")
-
-  def clean(self, texto, retirar):
-     # So pra deixar o carregarPajek mais limpo
-    return texto.replace(retirar, "").replace("\n", "")
 
   def carregarPajek(self, arquivoPajek):
     with open(arquivoPajek, "r") as file:
