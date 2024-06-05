@@ -1085,11 +1085,17 @@ class Grafo:
     return visitas
   
   def buscaProfundidadeComFinal(self, verticeInicial, verticeFinal):
-    # TODO: ARRUMAR PARA MATRIZ
+
+    # Verifica se existem os vertices no grafo:
+    if (verticeInicial not in self.vertices) and (verticeInicial not in self.vertices):
+      print("Erro! Vertice não encontrado no grafo")
+      return
+
     inicio = time()
     visitas = {}
     stack = []
     visitados = {}
+
     stack.append(verticeInicial)
 
     while stack:
@@ -1111,11 +1117,9 @@ class Grafo:
           tempo = fim - inicio
           visitas[verticeAtual] = (f"{tempo:.7f}")
 
-          if verticeAtual == verticeFinal:
-            break
-
         else:  # para lista
           for vizinho, _ in self.listaDict.get(verticeAtual, []):
+            print(f"verticeAtual: {verticeAtual} -> vizinho: {vizinho}")
             if vizinho not in visitados:
               stack.append(vizinho)
           
@@ -1123,10 +1127,10 @@ class Grafo:
           tempo = fim - inicio
           visitas[verticeAtual] = (f"{tempo:.7f}")
 
-          if verticeAtual == verticeFinal:
-            break
+      if verticeAtual == verticeFinal:
+        return visitas
       
-    return visitas
+    return f"Não foi possivel encontrar o vertice {verticeFinal} partindo do {verticeInicial}"
 
   def transpor(self): 
       ''' to transpose a directed graph'''
