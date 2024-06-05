@@ -1,6 +1,7 @@
 from time import time
 import random
 import numpy as np
+import pandas as pd
 # ploting imports:
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -1222,10 +1223,101 @@ class Grafo:
         representacao = file.readline()
         direcionamento = file.readline()
         ponderacao = file.readline()
-
+        
         self.repr = self.clean(representacao, "% representation=")
-        self.direcionado = bool(self.clean(direcionamento, "% directed="))
-        self.ponderado = bool(self.clean(ponderacao, "% weighted="))
+
+        if self.clean(direcionamento, "% directed=") == "True":
+          self.direcionado = True
+        else:
+          self.direcionado = False
+
+        if self.clean(ponderacao, "% weighted=") == "True":
+          self.ponderado = True
+        else:
+           self.ponderado = False
+
+        # Precisamos salvar as arestas da forma correta:
+        if self.repr == "matriz":
+          self.criarMatrizAdjacencias()
+
+        if self.repr == "lista":
+          self.listaDict = {}
+
+        # ---- Vertices:
+        quantVertices = file.readline()
+        # Pega a quantidade de vertices registradas:
+        quantVertices = int(self.clean(quantVertices, "*Vertices "))
+
+        # Pra cada vertice no pajek:
+        for i in range(quantVertices):
+          vertice = file.readline()
+          vertice = self.clean(vertice, "")
+          # Os vertices estão salvos assim:
+          # Numero do vertice | Nome do vertice
+          # Exemplo:
+          # 0 A
+          # 1 B
+          # 2 Carlos
+          vertice = vertice.split(" ")
+          self.adicionarVertice(vertice[1])
+        
+        # ---- Arestas:
+        # Tira uma linha do pajek desnecessária pro carregamento
+        # (é uma informação melhor usada na leitura humana)
+        arcs_edges = file.readline()
+
+        # Agora que só falta as arestas, o resto da leitura vai ser focada somente
+        # na obtenção das arestas:
+        while True:
+          aresta = file.readline()
+
+          if aresta == "":
+            break
+          
+          # A forma que as arestas são salvas é diferente:
+          # em vez de salvar o vertice 1 e o vertice 2, é salvo o index
+          # dos dois vertices referente a lista de vertices. Então, para
+          # os exemplos a seguir, leve em consideração a seguinte lista de
+          # vertices:
+
+          # self.vertices = [A, B, C, D, E]
+          # index são:       0, 1, 2, 3, 4
+
+          # As arestas estão salvas assim:
+          # Se for ponderado:
+          # Index Vertice 1 | Index Vertice 2 | Peso
+          # Exemplo:
+          # 0 1 1
+          # 1 2 1
+          # 3 4 2
+          # 2 4 4
+
+          # Se não for ponderado:
+          # Vertice 1 | Vertice 2
+          # Exemplo:
+          # 0 1
+          # 1 2
+          # 3 4
+          # 2 4
+
+          aresta = self.clean(aresta, "")
+          aresta = aresta.split(" ")
+
+          v1 = self.vertices[int(aresta[0])]
+          v2 = self.vertices[int(aresta[1])]
+
+          if self.ponderado:
+            if "." in aresta[2]:
+              peso = float(aresta[2])
+            
+            else:
+              peso = int(aresta[2])
+
+            self.adicionarAresta(v1, v2, peso)
+          
+          else: # not self.ponderado
+            self.adicionarAresta(v1, v2)
+
   
   def salvarPajek(self, arquivoPajek):
     ''' Salva o grafo em um arquivo pajek'''
@@ -1271,12 +1363,6 @@ class Grafo:
               aresta += f" {arestas[1]}"
 
             file.write(f"{aresta}\n")
-
-  
-
-    # ======================= Funções de representação ======================= #
-
-    # ===== cria matriz de adjacências =====
 
  # ======================= Funções de representação ======================= #
 
