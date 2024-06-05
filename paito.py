@@ -5,7 +5,7 @@ import pandas as pd
 # ploting imports:
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+#oi
 
 class Grafo:
 
